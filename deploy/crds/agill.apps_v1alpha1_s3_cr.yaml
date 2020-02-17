@@ -1,0 +1,7 @@
+apiVersion: agill.apps/v1alpha1
+kind: S3
+metadata:
+  name: example-s3
+spec:
+  # Add fields here
+  size: 3
