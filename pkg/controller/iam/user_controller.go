@@ -3,7 +3,6 @@ package iam
 import (
 	"context"
 	"github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
-	controller2 "github.com/agill17/s3-operator/pkg/controller"
 	"github.com/agill17/s3-operator/pkg/controller/utils"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -72,14 +71,14 @@ func (r *ReconcileIAMUser) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	// add finalizer
-	if errAddingFinalizer := utils.AddFinalizer(controller2.IAM_FINALIZER, r.client, cr); errAddingFinalizer != nil {
+	if errAddingFinalizer := utils.AddFinalizer(utils.IAM_FINALIZER, r.client, cr); errAddingFinalizer != nil {
 		return reconcile.Result{RequeueAfter: 30}, errAddingFinalizer
 	}
 
 	// handle delete
 	if cr.GetDeletionTimestamp() != nil {
 		// TODO: Delete IAM user
-		if errRemovingFinalizer := utils.RemoveFinalizer(controller2.IAM_FINALIZER, cr, r.client); errRemovingFinalizer != nil {
+		if errRemovingFinalizer := utils.RemoveFinalizer(utils.IAM_FINALIZER, cr, r.client); errRemovingFinalizer != nil {
 			return reconcile.Result{}, errRemovingFinalizer
 		}
 		return reconcile.Result{}, nil // do not requeue

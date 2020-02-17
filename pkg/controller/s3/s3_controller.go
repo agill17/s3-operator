@@ -2,9 +2,9 @@ package s3
 
 import (
 	"context"
-	controller2 "github.com/agill17/s3-operator/pkg/controller"
 	"github.com/agill17/s3-operator/pkg/controller/utils"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"github.com/davecgh/go-spew/spew"
 	"k8s.io/client-go/tools/record"
 
 	agillv1alpha1 "github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
@@ -85,27 +85,33 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 	}
 
 	// add finalizer
-	if errAddingFinalizer := utils.AddFinalizer(controller2.S3_FINALIZER, r.client, cr); errAddingFinalizer != nil {
+	if errAddingFinalizer := utils.AddFinalizer(utils.S3_FINALIZER, r.client, cr); errAddingFinalizer != nil {
 		reqLogger.Error(errAddingFinalizer, "Failed to add s3 finalizer, requeue with exponential back-off")
 		return reconcile.Result{}, errAddingFinalizer
+	}
+
+	// set up s3 client
+	if r.s3Client == nil {
+		r.s3Client = utils.S3Client(cr.Spec.Region)
 	}
 
 
 	// handle delete
 	if cr.GetDeletionTimestamp() != nil {
 		// TODO: Add delete logic for s3
-		if errRemovingFinalizers := utils.RemoveFinalizer(controller2.S3_FINALIZER, cr, r.client); errRemovingFinalizers != nil {
+		if errRemovingFinalizers := utils.RemoveFinalizer(utils.S3_FINALIZER, cr, r.client); errRemovingFinalizers != nil {
 			reqLogger.Error(errRemovingFinalizers, "Failed to remove s3 finalizer, retrying..")
 			return reconcile.Result{}, errRemovingFinalizers
 		}
 	}
+
 
 	// s3 create and reconcile logic
 	if errCreatingBucket := r.createBucket(cr); errCreatingBucket != nil {
 		reqLogger.Error(errCreatingBucket, "Failed to create bucket, re-trying..")
 		return reconcile.Result{}, errCreatingBucket
 	}
-
+	spew.Dump(utils.GetBucketACL(cr.Spec.BucketName, r.s3Client))
 
 	return reconcile.Result{}, nil
 }

@@ -9,8 +9,10 @@ func (s S3) CreateBucketIn() *s3.CreateBucketInput {
 	s3Input := &s3.CreateBucketInput{
 		ACL:                        aws.String(s.Spec.BucketACL),
 		Bucket:                     aws.String(s.Spec.BucketName),
-		CreateBucketConfiguration:  s.SetBucketLocation(),
 		ObjectLockEnabledForBucket: aws.Bool(s.Spec.EnableObjectLock),
+	}
+	if s.Spec.Region != "us-east-1" {
+		s3Input.CreateBucketConfiguration = s.SetBucketLocation()
 	}
 	return s3Input
 }

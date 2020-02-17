@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: s3-operator
+  namespace: s3-operator
 spec:
   replicas: 1
   selector:
@@ -15,12 +16,15 @@ spec:
       serviceAccountName: s3-operator
       containers:
         - name: s3-operator
-          # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: agill17/s3-operator:0.5.0
+          imagePullPolicy: Always
           command:
           - s3-operator
-          imagePullPolicy: Always
           env:
+            - name: AWS_ACCESS_KEY_ID
+              value: <your-value>
+            - name: AWS_SECRET_ACCESS_KEY
+              value: <your-value>
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:

@@ -9,10 +9,11 @@ import (
 
 // S3Spec defines the desired state of S3
 type S3Spec struct {
-	IAMUserSpec IAMUser `json:"iamUser,omitempty"`
+	// +optional
+	IAMUserSpec IAMUser `json:"iamUser"`
 	Region string `json:"region,required"`
 	BucketName string `json:"bucketName,required"`
-	BucketACL string `json:"bucketACL,omitemtpy"`
+	BucketACL string `json:"bucketACL"`
 	EnableObjectLock bool `json:"enableObjectLock"`
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
@@ -20,8 +21,8 @@ type S3Spec struct {
 }
 
 type IAMUser struct {
-	Username string `json:"username,required"`
-	AccessPolicy string `json:"username,required"`
+	Username string `json:"username"`
+	AccessPolicy string `json:"accessPolicy"`
 }
 
 

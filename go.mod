@@ -3,12 +3,14 @@ module github.com/agill17/s3-operator
 go 1.13
 
 require (
-	github.com/aws/aws-sdk-go v1.29.3 // indirect
+	github.com/aws/aws-sdk-go v1.29.3
+	github.com/davecgh/go-spew v1.1.1
 	github.com/operator-framework/operator-sdk v0.15.2
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d
 	sigs.k8s.io/controller-runtime v0.4.0
 )
 

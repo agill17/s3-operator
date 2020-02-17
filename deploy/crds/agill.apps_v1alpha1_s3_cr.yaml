@@ -3,5 +3,7 @@ kind: S3
 metadata:
   name: example-s3
 spec:
-  # Add fields here
-  size: 3
+  region: us-east-1
+  bucketACL: public-read
+  bucketName: agill-test-bucket
+  enableObjectLock: false
