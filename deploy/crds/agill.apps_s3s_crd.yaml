@@ -58,10 +58,16 @@ spec:
         status:
           description: S3Status defines the observed state of S3
           properties:
-            cloudState:
+            accessKeyId:
+              type: string
+            phase:
+              type: string
+            secretAccessKey:
               type: string
           required:
-          - cloudState
+          - accessKeyId
+          - phase
+          - secretAccessKey
           type: object
       type: object
   version: v1alpha1

@@ -15,9 +15,6 @@ type S3Spec struct {
 	BucketName string `json:"bucketName,required"`
 	BucketACL string `json:"bucketACL"`
 	EnableObjectLock bool `json:"enableObjectLock"`
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 }
 
 type IAMUser struct {
@@ -26,16 +23,17 @@ type IAMUser struct {
 }
 
 
-type CloudState string
-var AVAILABLE CloudState = "available"
-var DOES_NOT_EXIST CloudState = "doesNotExist"
+type Phase string
+var CREATE_CLOUD_RESOURCES Phase = "createCloudResources"
+var CREATE_K8S_RESOURCES Phase = "createK8sResources"
+var COMPLETED Phase = "completed"
+
 
 // S3Status defines the observed state of S3
 type S3Status struct {
-	CloudState CloudState `json:"cloudState"`
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	Phase Phase `json:"phase"`
+	AccessKeyId string `json:"accessKeyId"`
+	SecretAccessKey string `json:"secretAccessKey"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

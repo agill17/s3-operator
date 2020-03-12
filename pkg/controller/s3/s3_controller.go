@@ -3,8 +3,9 @@ package s3
 import (
 	"context"
 	"github.com/agill17/s3-operator/pkg/controller/utils"
+	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
-	"github.com/davecgh/go-spew/spew"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/record"
 
 	agillv1alpha1 "github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
@@ -47,6 +48,15 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	// watch s3 k8s service
+	err = c.Watch(&source.Kind{Type: &v1.Service{}}, &handler.EnqueueRequestForOwner{
+		OwnerType:    &agillv1alpha1.S3{},
+		IsController: true,
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -60,6 +70,7 @@ type ReconcileS3 struct {
 	client client.Client
 	scheme *runtime.Scheme
 	s3Client s3iface.S3API
+	iamClient iamiface.IAMAPI
 	recorder record.EventRecorder
 }
 
@@ -105,13 +116,16 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 		}
 	}
 
-
-	// s3 create and reconcile logic
-	if errCreatingBucket := r.createBucket(cr); errCreatingBucket != nil {
-		reqLogger.Error(errCreatingBucket, "Failed to create bucket, re-trying..")
-		return reconcile.Result{}, errCreatingBucket
+	currentPhase := cr.Status.Phase
+	reqLogger.Info("Current phase: %v", currentPhase)
+	switch currentPhase {
+	case "":
+		return handleEmptyPhase(cr, r.client)
+	case agillv1alpha1.CREATE_CLOUD_RESOURCES, agillv1alpha1.COMPLETED:
+		return r.handleCreateCloudResources(cr)
+	case agillv1alpha1.CREATE_K8S_RESOURCES:
+		return r.handleCreateK8sResources(cr)
 	}
-	spew.Dump(utils.GetBucketACL(cr.Spec.BucketName, r.s3Client))
 
 	return reconcile.Result{}, nil
 }
