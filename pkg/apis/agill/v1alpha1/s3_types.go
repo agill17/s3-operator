@@ -24,8 +24,8 @@ type IAMUser struct {
 
 
 type Phase string
-var CREATE_CLOUD_RESOURCES Phase = "createCloudResources"
-var CREATE_K8S_RESOURCES Phase = "createK8sResources"
+var CREATE_IAM_RESOURCES Phase = "createIamResources"
+var CREATE_S3_RESOURCES Phase = "createS3Resources"
 var COMPLETED Phase = "completed"
 
 

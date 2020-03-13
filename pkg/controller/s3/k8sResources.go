@@ -12,15 +12,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-func createIamK8sSecret(cr *agillv1alpha1.S3, client client.Client,scheme *runtime.Scheme) error {
+func createIamK8sSecret(cr *agillv1alpha1.S3, accessKeyId, secretAccessKey string, client client.Client,scheme *runtime.Scheme) error {
 	secret := &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprintf("%v-iam-secret", cr.GetName()),
 			Namespace: cr.GetNamespace(),
 		},
 		Data:       map[string][]byte {
-			"AWS_ACCESS_KEY_ID": []byte(cr.Status.AccessKeyId),
-			"AWS_SECRET_ACCESS_KEY": []byte(cr.Status.SecretAccessKey),
+			"AWS_ACCESS_KEY_ID": []byte(accessKeyId),
+			"AWS_SECRET_ACCESS_KEY": []byte(secretAccessKey),
 		},
 		Type:       v1.SecretTypeOpaque,
 	}
@@ -31,8 +31,6 @@ func createIamK8sSecret(cr *agillv1alpha1.S3, client client.Client,scheme *runti
 		return err
 	}
 
-	cr.Status.AccessKeyId = ""
-	cr.Status.SecretAccessKey = ""
 	return utils.UpdateCrStatus(cr, client)
 }
 

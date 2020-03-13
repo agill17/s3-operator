@@ -2,13 +2,15 @@ package s3
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
 	"github.com/agill17/s3-operator/pkg/controller/utils"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/davecgh/go-spew/spew"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierror "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -33,30 +35,15 @@ func (r ReconcileS3) createBucket(cr *v1alpha1.S3) error {
 	return nil
 }
 
-func (r ReconcileS3) createIamResources(cr *v1alpha1.S3) error {
-	errCreatingIamUser := utils.CreateIAMUser(cr.CreateIAMUserIn(), r.iamClient)
-	if errCreatingIamUser != nil {
-		return errCreatingIamUser
-	}
-
-	errAttachingIAMPolicy := utils.AttachPolicyToIAMUser(cr.Spec.IAMUserSpec.Username, cr.Spec.IAMUserSpec.AccessPolicy, r.iamClient)
-	if errAttachingIAMPolicy != nil {
-		return errAttachingIAMPolicy
-	}
-
-
-	return handleAccessKeys(cr, r.iamClient, r.client)
-}
-
 // if secret is not found in namespace, create new access keys ( delete the rest of the access keys if any )
 // if secret is found, and access key does not match IAM access key ( delete the secret and delete all access keys on IAM ) and create fresh access keys
-func handleAccessKeys(cr *v1alpha1.S3, iamClient iamiface.IAMAPI, client client.Client) error {
+func handleAccessKeys(cr *v1alpha1.S3, iamClient iamiface.IAMAPI, client client.Client, scheme *runtime.Scheme) error {
 	secretFound := &v1.Secret{}
 	if err := client.Get(context.TODO(),
 		types.NamespacedName{Namespace: cr.GetNamespace(), Name:fmt.Sprintf("%v-iam-secret", cr.Name)},
 		secretFound); err != nil {
 
-			if errors.IsNotFound(err) {
+			if apierror.IsNotFound(err) {
 				// clean up access keys if any
 				if errDeletingAllAccessKeys := utils.DeleteAllAccessKeys(cr.Spec.IAMUserSpec.Username, iamClient); errDeletingAllAccessKeys != nil {
 					return errDeletingAllAccessKeys
@@ -68,10 +55,16 @@ func handleAccessKeys(cr *v1alpha1.S3, iamClient iamiface.IAMAPI, client client.
 					return errCreatingAccessKeys
 				}
 
-				cr.Status.AccessKeyId = *acccessKeysOutput.AccessKey.AccessKeyId
-				cr.Status.SecretAccessKey = *acccessKeysOutput.AccessKey.SecretAccessKey
+				// create k8s secret
+				if errCreatingSecret := createIamK8sSecret(cr,
+					*acccessKeysOutput.AccessKey.AccessKeyId,
+					*acccessKeysOutput.AccessKey.SecretAccessKey,
+					client, scheme); errCreatingSecret != nil {
+					return errCreatingSecret
+				}
 				return utils.UpdateCrStatus(cr, client)
 			}
+		// if err is something else other then isNotFound, return that error
 		return err
 	}
 
@@ -84,7 +77,12 @@ func handleAccessKeys(cr *v1alpha1.S3, iamClient iamiface.IAMAPI, client client.
 
 	if accessKeyIdInSecret != accessKeyIdInAWS {
 		// delete secret to re-initiate
-		return client.Delete(context.TODO(), secretFound)
+		if err := client.Delete(context.TODO(), secretFound); err != nil {
+			return err
+		}
+		// return error to force a requeue
+		// TODO: make this a custom error so that we can catch in reconcile and quietly requeue
+		return errors.New("ErrorIAMK8SSecretNeedsUpdate")
 	}
 	return nil
 }

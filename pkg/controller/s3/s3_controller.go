@@ -65,8 +65,6 @@ var _ reconcile.Reconciler = &ReconcileS3{}
 
 // ReconcileS3 reconciles a S3 object
 type ReconcileS3 struct {
-	// This client, initialized using mgr.Client() above, is a split client
-	// that reads objects from the cache and writes to the apiserver
 	client client.Client
 	scheme *runtime.Scheme
 	s3Client s3iface.S3API
@@ -76,11 +74,6 @@ type ReconcileS3 struct {
 
 // Reconcile reads that state of the cluster for a S3 object and makes changes based on the state read
 // and what is in the S3.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
-// Note:
-// The Controller will requeue the Request to be processed again if the returned error is non-nil or
-// Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling S3")
@@ -121,10 +114,15 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 	switch currentPhase {
 	case "":
 		return handleEmptyPhase(cr, r.client)
-	case agillv1alpha1.CREATE_CLOUD_RESOURCES, agillv1alpha1.COMPLETED:
-		return r.handleCreateCloudResources(cr)
-	case agillv1alpha1.CREATE_K8S_RESOURCES:
-		return r.handleCreateK8sResources(cr)
+	case agillv1alpha1.CREATE_IAM_RESOURCES:
+		return r.handleCreateIamResources(cr)
+	case agillv1alpha1.CREATE_S3_RESOURCES:
+		return r.handleCreateS3Resources(cr)
+	case agillv1alpha1.COMPLETED:
+		cr.Status.Phase = agillv1alpha1.CREATE_IAM_RESOURCES
+		if err := utils.UpdateCrStatus(cr,r.client); err != nil {
+			return reconcile.Result{}, err
+		}
 	}
 
 	return reconcile.Result{}, nil
