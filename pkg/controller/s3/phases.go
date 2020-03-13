@@ -3,6 +3,7 @@ package s3
 import (
 	agillv1alpha1 "github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
 	"github.com/agill17/s3-operator/pkg/controller/utils"
+	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -55,5 +56,6 @@ func (r ReconcileS3) handleCreateS3Resources(cr *agillv1alpha1.S3) (reconcile.Re
 
 	// change phase to completed
 	cr.Status.Phase = agillv1alpha1.COMPLETED
+	r.recorder.Eventf(cr, v1.EventTypeNormal, "COMPLETED", "All resources are successfully reconciled.")
 	return reconcile.Result{Requeue:true}, utils.UpdateCrStatus(cr, r.client)
 }
