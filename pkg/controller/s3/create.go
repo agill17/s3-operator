@@ -2,8 +2,8 @@ package s3
 
 import (
 	"context"
-	"errors"
 	"github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
+	customErrors "github.com/agill17/s3-operator/pkg/controller/errors"
 	"github.com/agill17/s3-operator/pkg/controller/utils"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/davecgh/go-spew/spew"
@@ -74,8 +74,7 @@ func handleAccessKeys(cr *v1alpha1.S3, iamClient iamiface.IAMAPI, client client.
 			return err
 		}
 		// return error to force a requeue
-		// TODO: make this a custom error so that we can catch in reconcile and quietly requeue
-		return errors.New("ErrorIAMK8SSecretNeedsUpdate")
+		return customErrors.ErrorIAMK8SSecretNeedsUpdate{Message:"AccessKeyId no longer matches with AWS"}
 	}
 
 	return nil
