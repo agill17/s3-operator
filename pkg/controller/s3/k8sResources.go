@@ -8,6 +8,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -32,6 +33,12 @@ func createIamK8sSecret(cr *agillv1alpha1.S3, accessKeyId, secretAccessKey strin
 	}
 
 	return utils.UpdateCrStatus(cr, client)
+}
+
+func getIamK8sSecret(cr *agillv1alpha1.S3, client2 client.Client) (*v1.Secret, error) {
+	s := &v1.Secret{}
+	err := client2.Get(context.TODO(), types.NamespacedName{Name: fmt.Sprintf("%v-iam-secret", cr.GetName()), Namespace: cr.GetNamespace()}, s)
+	return s, err
 }
 
 func createS3K8sService(cr *agillv1alpha1.S3, client client.Client, scheme *runtime.Scheme) error {

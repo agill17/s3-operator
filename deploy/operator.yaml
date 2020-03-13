@@ -20,11 +20,13 @@ spec:
           imagePullPolicy: Always
           command:
           - s3-operator
+          args:
+          - --zap-devel
           env:
             - name: AWS_ACCESS_KEY_ID
-              value: <your-value>
+              value: <>
             - name: AWS_SECRET_ACCESS_KEY
-              value: <your-value>
+              value: <>
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:

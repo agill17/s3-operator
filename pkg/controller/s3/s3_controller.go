@@ -2,15 +2,15 @@ package s3
 
 import (
 	"context"
+	"fmt"
+	agillv1alpha1 "github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
 	"github.com/agill17/s3-operator/pkg/controller/utils"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/tools/record"
-
-	agillv1alpha1 "github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -57,6 +57,14 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	err = c.Watch(&source.Kind{Type: &v1.Secret{}}, &handler.EnqueueRequestForOwner{
+		OwnerType:    &agillv1alpha1.S3{},
+		IsController: true,
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -94,11 +102,9 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 		return reconcile.Result{}, errAddingFinalizer
 	}
 
-	// set up s3 client
-	if r.s3Client == nil {
-		r.s3Client = utils.S3Client(cr.Spec.Region)
-	}
-
+	// set up s3 and iam client
+	r.s3Client = utils.S3Client(cr.Spec.Region)
+	r.iamClient = utils.IAMClient(cr.Spec.Region)
 
 	// handle delete
 	if cr.GetDeletionTimestamp() != nil {
@@ -110,7 +116,8 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 	}
 
 	currentPhase := cr.Status.Phase
-	reqLogger.Info("Current phase: %v", currentPhase)
+	reqLogger.Info(fmt.Sprintf("current phase: %v", currentPhase))
+
 	switch currentPhase {
 	case "":
 		return handleEmptyPhase(cr, r.client)
@@ -119,10 +126,16 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 	case agillv1alpha1.CREATE_S3_RESOURCES:
 		return r.handleCreateS3Resources(cr)
 	case agillv1alpha1.COMPLETED:
-		cr.Status.Phase = agillv1alpha1.CREATE_IAM_RESOURCES
-		if err := utils.UpdateCrStatus(cr,r.client); err != nil {
-			return reconcile.Result{}, err
+		isReconcileNeeded, errCheckingForUpdates := r.isReconcileNeeded(cr)
+		if errCheckingForUpdates != nil {
+			return reconcile.Result{}, errCheckingForUpdates
 		}
+
+		if isReconcileNeeded {
+			cr.Status.Phase = agillv1alpha1.CREATE_IAM_RESOURCES
+			return reconcile.Result{Requeue: true}, utils.UpdateCrStatus(cr, r.client)
+		}
+		reqLogger.Info(fmt.Sprintf("No updates needed for %v/%v: ", cr.GetNamespace(), cr.GetName()))
 	}
 
 	return reconcile.Result{}, nil

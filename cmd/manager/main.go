@@ -87,7 +87,7 @@ func main() {
 	}
 
 	// Create a new Cmd to provide shared dependencies and start components
-	syncPeriod := 5 * time.Second
+	syncPeriod := 5 * time.Minute
 	mgr, err := manager.New(cfg, manager.Options{
 		Namespace:          "",
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),

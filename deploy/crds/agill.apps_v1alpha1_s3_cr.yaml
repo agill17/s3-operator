@@ -7,3 +7,6 @@ spec:
   bucketACL: public-read
   bucketName: agill-test-bucket
   enableObjectLock: false
+  iamUser:
+    username: agill-test-bucket
+    accessPolicy: arn:aws:iam::aws:policy/AdministratorAccess
