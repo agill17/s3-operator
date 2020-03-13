@@ -38,27 +38,27 @@ func (r ReconcileS3) createBucket(cr *v1alpha1.S3) error {
 func handleAccessKeys(cr *v1alpha1.S3, iamClient iamiface.IAMAPI, client client.Client, scheme *runtime.Scheme) error {
 	secret, err := getIamK8sSecret(cr, client)
 	if err != nil {
-			if apierror.IsNotFound(err) {
-				// clean up access keys if any
-				if errDeletingAllAccessKeys := utils.DeleteAllAccessKeys(cr.Spec.IAMUserSpec.Username, iamClient); errDeletingAllAccessKeys != nil {
-					return errDeletingAllAccessKeys
-				}
-
-				// create fresh access keys
-				acccessKeysOutput, errCreatingAccessKeys := utils.CreateAccessKeys(cr.Spec.IAMUserSpec.Username, iamClient)
-				if errCreatingAccessKeys != nil {
-					return errCreatingAccessKeys
-				}
-
-				// create k8s secret
-				if errCreatingSecret := createIamK8sSecret(cr,
-					*acccessKeysOutput.AccessKey.AccessKeyId,
-					*acccessKeysOutput.AccessKey.SecretAccessKey,
-					client, scheme); errCreatingSecret != nil {
-					return errCreatingSecret
-				}
-				return utils.UpdateCrStatus(cr, client)
+		if apierror.IsNotFound(err) {
+			// clean up access keys if any
+			if errDeletingAllAccessKeys := utils.DeleteAllAccessKeys(cr.Spec.IAMUserSpec.Username, iamClient); errDeletingAllAccessKeys != nil {
+				return errDeletingAllAccessKeys
 			}
+
+			// create fresh access keys
+			acccessKeysOutput, errCreatingAccessKeys := utils.CreateAccessKeys(cr.Spec.IAMUserSpec.Username, iamClient)
+			if errCreatingAccessKeys != nil {
+				return errCreatingAccessKeys
+			}
+
+			// create k8s secret
+			if errCreatingSecret := createIamK8sSecret(cr,
+				*acccessKeysOutput.AccessKey.AccessKeyId,
+				*acccessKeysOutput.AccessKey.SecretAccessKey,
+				client, scheme); errCreatingSecret != nil {
+				return errCreatingSecret
+			}
+			return utils.UpdateCrStatus(cr, client)
+		}
 		// if err is something else other then isNotFound, return that error
 		return err
 	}
@@ -74,7 +74,7 @@ func handleAccessKeys(cr *v1alpha1.S3, iamClient iamiface.IAMAPI, client client.
 			return err
 		}
 		// return error to force a requeue
-		return customErrors.ErrorIAMK8SSecretNeedsUpdate{Message:"AccessKeyId no longer matches with AWS"}
+		return customErrors.ErrorIAMK8SSecretNeedsUpdate{Message: "AccessKeyId no longer matches with AWS"}
 	}
 
 	return nil
@@ -89,4 +89,3 @@ func secretAccessKeyAndIamAccessKeyMatch(cr *v1alpha1.S3, k8sSecret *v1.Secret, 
 
 	return accessKeyIdInSecret == accessKeyIdInAWS, nil
 }
-
