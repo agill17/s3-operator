@@ -5,7 +5,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"net/url"
 )
 
 func IAMUserExists(username string, iamClient iamiface.IAMAPI) (bool, error) {
@@ -99,23 +98,6 @@ func CreateIAMUser(input *iam.CreateUserInput, iamClient iamiface.IAMAPI) error 
 		}
 	}
 	return nil
-}
-
-
-func IAMPolicyMatchesDesiredPolicyDocument(desiredPolicyDocument, username, policyName string, iamClient iamiface.IAMAPI) (bool, error){
-	currentPolicyInAWS, errGetting := iamClient.GetUserPolicy(&iam.GetUserPolicyInput{
-		PolicyName: &policyName,
-		UserName:   &username,
-	})
-	if errGetting != nil {
-		return false, errGetting
-	}
-	currentPolicyDocInAws, err := url.QueryUnescape(*currentPolicyInAWS.PolicyDocument)
-	if err != nil {
-		return false, err
-	}
-	return desiredPolicyDocument == currentPolicyDocInAws, nil
-
 }
 
 func DeleteIAMInlinePolicyFromUser(policyName, username string, iamClient iamiface.IAMAPI) error {

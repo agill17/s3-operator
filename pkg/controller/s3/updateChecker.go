@@ -36,7 +36,7 @@ func (r ReconcileS3) isReconcileNeeded(cr *v1alpha1.S3) (bool, error) {
 	if errGettingDesiredPolicy != nil {
 		return false, errGettingDesiredPolicy
 	}
-	policyUpToDate, errCheckingPolicyWithAws := utils.IAMPolicyMatchesDesiredPolicyDocument(desiredPolicy,
+	policyUpToDate, errCheckingPolicyWithAws := IAMPolicyMatchesDesiredPolicyDocument(desiredPolicy,
 		cr.Spec.IAMUserSpec.Username, cr.GetPolicyName(), r.iamClient)
 	if errCheckingPolicyWithAws != nil {
 		return false, errCheckingPolicyWithAws

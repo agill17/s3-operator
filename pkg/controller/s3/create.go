@@ -102,7 +102,7 @@ func CreateOrUpdateIAMPolicy(cr *v1alpha1.S3, iamClient iamiface.IAMAPI) error {
 	if errGettingDesiredPolicy != nil {
 		return errGettingDesiredPolicy
 	}
-	policyUpToDate, err := utils.IAMPolicyMatchesDesiredPolicyDocument(desiredPolicy, cr.Spec.IAMUserSpec.Username, cr.GetPolicyName(), iamClient)
+	policyUpToDate, err := IAMPolicyMatchesDesiredPolicyDocument(desiredPolicy, cr.Spec.IAMUserSpec.Username, cr.GetPolicyName(), iamClient)
 	if err != nil {
 		return err
 	}
