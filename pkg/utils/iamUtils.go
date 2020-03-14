@@ -93,3 +93,23 @@ func AttachPolicyToIAMUser(username, policyArn string, iamClient iamiface.IAMAPI
 	})
 	return err
 }
+
+func DeleteUser(username, policyArn string, iamClient iamiface.IAMAPI) error {
+
+	if errDeletingAccessKeys := DeleteAllAccessKeys(username, iamClient); errDeletingAccessKeys != nil {
+		return errDeletingAccessKeys
+	}
+
+	if _, errDetachingAccessPolicy := iamClient.DetachUserPolicy(
+		&iam.DetachUserPolicyInput{
+			UserName:&username,
+			PolicyArn:&policyArn},); errDetachingAccessPolicy != nil {
+		return errDetachingAccessPolicy
+	}
+
+	if _, errDeletingUser := iamClient.DeleteUser(&iam.DeleteUserInput{UserName:&username}); errDeletingUser != nil {
+		return errDeletingUser
+	}
+
+	return nil
+}

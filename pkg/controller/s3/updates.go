@@ -3,7 +3,7 @@ package s3
 import (
 	"context"
 	"github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
-	"github.com/agill17/s3-operator/pkg/controller/utils"
+	"github.com/agill17/s3-operator/pkg/utils"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"

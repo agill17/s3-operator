@@ -3,7 +3,7 @@ package s3
 import (
 	agillv1alpha1 "github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
 	customErrors "github.com/agill17/s3-operator/pkg/controller/errors"
-	"github.com/agill17/s3-operator/pkg/controller/utils"
+	"github.com/agill17/s3-operator/pkg/utils"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"

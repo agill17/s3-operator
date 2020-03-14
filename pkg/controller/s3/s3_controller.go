@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	agillv1alpha1 "github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
-	"github.com/agill17/s3-operator/pkg/controller/utils"
+	"github.com/agill17/s3-operator/pkg/utils"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	v1 "k8s.io/api/core/v1"
@@ -108,16 +108,23 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 
 	// handle delete
 	if cr.GetDeletionTimestamp() != nil {
-		// TODO: Add delete logic for s3
+		if errDeletingBucket := utils.DeleteBucket(cr.Spec.BucketName, r.s3Client); errDeletingBucket != nil {
+			return reconcile.Result{}, errDeletingBucket
+		}
+		if errDeletingUser := utils.DeleteUser(cr.Spec.IAMUserSpec.Username, cr.Spec.IAMUserSpec.AccessPolicy, r.iamClient); errDeletingUser != nil {
+			return reconcile.Result{}, errDeletingUser
+		}
 		if errRemovingFinalizers := utils.RemoveFinalizer(utils.S3_FINALIZER, cr, r.client); errRemovingFinalizers != nil {
 			reqLogger.Error(errRemovingFinalizers, "Failed to remove s3 finalizer, retrying..")
 			return reconcile.Result{}, errRemovingFinalizers
 		}
+
+		// do not requeue
+		return reconcile.Result{}, nil
 	}
 
 	currentPhase := cr.Status.Phase
 	reqLogger.Info(fmt.Sprintf("current phase: %v", currentPhase))
-
 	switch currentPhase {
 	case "":
 		return handleEmptyPhase(cr, r.client)

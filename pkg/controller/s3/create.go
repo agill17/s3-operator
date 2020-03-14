@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
 	customErrors "github.com/agill17/s3-operator/pkg/controller/errors"
-	"github.com/agill17/s3-operator/pkg/controller/utils"
+	"github.com/agill17/s3-operator/pkg/utils"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/davecgh/go-spew/spew"
 	v1 "k8s.io/api/core/v1"

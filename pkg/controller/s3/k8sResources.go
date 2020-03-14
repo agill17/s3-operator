@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	agillv1alpha1 "github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
-	"github.com/agill17/s3-operator/pkg/controller/utils"
+	"github.com/agill17/s3-operator/pkg/utils"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
