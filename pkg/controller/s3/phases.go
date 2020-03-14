@@ -27,10 +27,8 @@ func (r ReconcileS3) handleCreateIamResources(cr *agillv1alpha1.S3) (reconcile.R
 		return reconcile.Result{}, errCreatingIamUser
 	}
 
-	// attach policy
-	errAttachingIAMPolicy := utils.AttachPolicyToIAMUser(cr.Spec.IAMUserSpec.Username, cr.Spec.IAMUserSpec.AccessPolicy, r.iamClient)
-	if errAttachingIAMPolicy != nil {
-		return reconcile.Result{},  errAttachingIAMPolicy
+	if errCreatingUpdatingPolicy := CreateOrUpdateIAMPolicy(cr, r.iamClient); errCreatingUpdatingPolicy != nil {
+		return reconcile.Result{}, errCreatingUpdatingPolicy
 	}
 
 	// create access keys and k8s secret
@@ -65,3 +63,5 @@ func (r ReconcileS3) handleCreateS3Resources(cr *agillv1alpha1.S3) (reconcile.Re
 	r.recorder.Eventf(cr, v1.EventTypeNormal, "COMPLETED", "All resources are successfully reconciled.")
 	return reconcile.Result{Requeue:true}, utils.UpdateCrStatus(cr, r.client)
 }
+
+

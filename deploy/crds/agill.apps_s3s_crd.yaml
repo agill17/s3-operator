@@ -39,12 +39,9 @@ spec:
               type: boolean
             iamUser:
               properties:
-                accessPolicy:
-                  type: string
                 username:
                   type: string
               required:
-              - accessPolicy
               - username
               type: object
             region:

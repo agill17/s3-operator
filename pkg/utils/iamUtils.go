@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+	"net/url"
 )
 
 func IAMUserExists(username string, iamClient iamiface.IAMAPI) (bool, error) {
@@ -16,14 +17,6 @@ func IAMUserExists(username string, iamClient iamiface.IAMAPI) (bool, error) {
 			}
 		}
 		// if we are not catching a err, we return false with err
-		return false, err
-	}
-	return true, nil
-}
-
-func IAMPolicyExists(policyArn string, iamClient iamiface.IAMAPI) (bool, error) {
-	_, err := iamClient.GetPolicy(&iam.GetPolicyInput{PolicyArn:&policyArn})
-	if err != nil {
 		return false, err
 	}
 	return true, nil
@@ -51,6 +44,28 @@ func DeleteAllAccessKeys(iamUser string, iamapi iamiface.IAMAPI) error {
 		}
 	}
 	return nil
+}
+
+func DeleteAllUserInlinePolicies(iamUser string, iamapi iamiface.IAMAPI) error {
+	//To list the inline policies for a user, use the ListUserPolicies API.
+	allPolicies, err := iamapi.ListUserPolicies(&iam.ListUserPoliciesInput{
+		UserName: &iamUser,
+	})
+	if err != nil {
+		return err
+	}
+
+	// none found..
+	if allPolicies == nil {
+		return nil
+	}
+
+	for _, e := range allPolicies.PolicyNames {
+		if errDetaching := DeleteIAMInlinePolicyFromUser(*e, iamUser, iamapi); errDetaching != nil {
+			return errDetaching
+		}
+	}
+	return  nil
 }
 
 func GetAccessKeyForUser(username string, iamclient iamiface.IAMAPI) (string, error) {
@@ -86,30 +101,44 @@ func CreateIAMUser(input *iam.CreateUserInput, iamClient iamiface.IAMAPI) error 
 	return nil
 }
 
-func AttachPolicyToIAMUser(username, policyArn string, iamClient iamiface.IAMAPI) error {
-	_, err := iamClient.AttachUserPolicy(&iam.AttachUserPolicyInput{
-		PolicyArn: &policyArn,
-		UserName:  &username,
+
+func IAMPolicyMatchesDesiredPolicyDocument(desiredPolicyDocument, username, policyName string, iamClient iamiface.IAMAPI) (bool, error){
+	currentPolicyInAWS, errGetting := iamClient.GetUserPolicy(&iam.GetUserPolicyInput{
+		PolicyName: &policyName,
+		UserName:   &username,
 	})
-	return err
+	if errGetting != nil {
+		return false, errGetting
+	}
+	currentPolicyDocInAws, err := url.QueryUnescape(*currentPolicyInAWS.PolicyDocument)
+	if err != nil {
+		return false, err
+	}
+	return desiredPolicyDocument == currentPolicyDocInAws, nil
+
 }
 
-func DeleteUser(username, policyArn string, iamClient iamiface.IAMAPI) error {
+func DeleteIAMInlinePolicyFromUser(policyName, username string, iamClient iamiface.IAMAPI) error {
+	_, errDeletingInlinePolicy := iamClient.DeleteUserPolicy(&iam.DeleteUserPolicyInput{
+		PolicyName: &policyName,
+		UserName:   &username,
+	})
+	return errDeletingInlinePolicy
+}
 
-	if errDeletingAccessKeys := DeleteAllAccessKeys(username, iamClient); errDeletingAccessKeys != nil {
-		return errDeletingAccessKeys
+
+func IAMUserPolicyExists(policyName, iamUser string, iamClient iamiface.IAMAPI) (bool, error) {
+	_, err := iamClient.GetUserPolicy(&iam.GetUserPolicyInput{
+		PolicyName: &policyName,
+		UserName:   &iamUser,
+	})
+	if err != nil {
+		if awsErr, isAwsErr := err.(awserr.Error); isAwsErr {
+			if awsErr.Code() == iam.ErrCodeNoSuchEntityException {
+				return false, nil
+			}
+		}
+		return false, err
 	}
-
-	if _, errDetachingAccessPolicy := iamClient.DetachUserPolicy(
-		&iam.DetachUserPolicyInput{
-			UserName:&username,
-			PolicyArn:&policyArn},); errDetachingAccessPolicy != nil {
-		return errDetachingAccessPolicy
-	}
-
-	if _, errDeletingUser := iamClient.DeleteUser(&iam.DeleteUserInput{UserName:&username}); errDeletingUser != nil {
-		return errDeletingUser
-	}
-
-	return nil
+	return true, nil
 }

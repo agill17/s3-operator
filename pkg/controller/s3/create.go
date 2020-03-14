@@ -80,12 +80,41 @@ func handleAccessKeys(cr *v1alpha1.S3, iamClient iamiface.IAMAPI, client client.
 	return nil
 }
 
-func secretAccessKeyAndIamAccessKeyMatch(cr *v1alpha1.S3, k8sSecret *v1.Secret, iamClient iamiface.IAMAPI) (bool, error) {
-	accessKeyIdInSecret := string(k8sSecret.Data["AWS_ACCESS_KEY_ID"])
-	accessKeyIdInAWS, err := utils.GetAccessKeyForUser(cr.Spec.IAMUserSpec.Username, iamClient)
-	if err != nil {
-		return false, err
+func CreateOrUpdateIAMPolicy(cr *v1alpha1.S3, iamClient iamiface.IAMAPI) error {
+	inlinePolicyExists, errGettingPolicy := utils.IAMUserPolicyExists(
+		cr.GetPolicyName(), cr.GetUsername(), iamClient)
+	if errGettingPolicy != nil {
+		return errGettingPolicy
+	}
+	if !inlinePolicyExists {
+		inlinePolicyIn, errCreatingPolicyInput := cr.CreateRestrictedInlinePolicyForBucket()
+		if errCreatingPolicyInput != nil {
+			return errCreatingPolicyInput
+		}
+		_, errCreatingPolicy := iamClient.PutUserPolicy(inlinePolicyIn)
+		if errCreatingPolicy != nil {
+			return errCreatingPolicy
+		}
+		return nil
 	}
 
-	return accessKeyIdInSecret == accessKeyIdInAWS, nil
+	desiredPolicy, errGettingDesiredPolicy := v1alpha1.DesiredRestrictedPolicyDocForBucket(cr.GetPolicyName(), cr.Spec.BucketName)
+	if errGettingDesiredPolicy != nil {
+		return errGettingDesiredPolicy
+	}
+	policyUpToDate, err := utils.IAMPolicyMatchesDesiredPolicyDocument(desiredPolicy, cr.Spec.IAMUserSpec.Username, cr.GetPolicyName(), iamClient)
+	if err != nil {
+		return err
+	}
+
+	if !policyUpToDate {
+		if err := utils.DeleteAllUserInlinePolicies(cr.GetUsername(), iamClient); err != nil {
+			return err
+		}
+		return customErrors.ErrorIAMInlinePolicyNeedsUpdate{Message:"Restricted inline policy out of date"}
+	}
+
+	return nil
+
 }
+

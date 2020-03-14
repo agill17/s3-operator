@@ -31,6 +31,20 @@ func (r ReconcileS3) isReconcileNeeded(cr *v1alpha1.S3) (bool, error) {
 		return false, err
 	}
 
+	// if restricted policy no longer matches in AWS
+	desiredPolicy, errGettingDesiredPolicy := v1alpha1.DesiredRestrictedPolicyDocForBucket(cr.GetPolicyName(), cr.Spec.BucketName)
+	if errGettingDesiredPolicy != nil {
+		return false, errGettingDesiredPolicy
+	}
+	policyUpToDate, errCheckingPolicyWithAws := utils.IAMPolicyMatchesDesiredPolicyDocument(desiredPolicy,
+		cr.Spec.IAMUserSpec.Username, cr.GetPolicyName(), r.iamClient)
+	if errCheckingPolicyWithAws != nil {
+		return false, errCheckingPolicyWithAws
+	}
+	if !policyUpToDate {
+		return true, nil
+	}
+
 	// if secret does exist and access key no longer matches, we requeue
 	accessKeyMatchesInAws, errCheckingMatch := secretAccessKeyAndIamAccessKeyMatch(cr,
 		k8sSecret, r.iamClient)

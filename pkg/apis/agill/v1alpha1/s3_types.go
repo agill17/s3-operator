@@ -19,7 +19,6 @@ type S3Spec struct {
 
 type IAMUser struct {
 	Username string `json:"username"`
-	AccessPolicy string `json:"accessPolicy"`
 }
 
 
