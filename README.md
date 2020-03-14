@@ -18,3 +18,4 @@
 
 ### TODO
 - Remove `status.phase` as a way to track reconcile, it adds un-necessary and redundant checks whether a reconcile is needed
+- Add tags to cloud resources ( as a way to own them ), this way if user or bucket already exists and does not have tags, operator should complain and not perform any actions on it.
