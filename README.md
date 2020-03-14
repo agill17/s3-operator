@@ -15,3 +15,6 @@
 - [x] Delete IAM user 
 - [x] Create/Recreate/Update secret which contains IAM user credentials ( `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`)
 - [x] Get new fresh pair of access keys by deleting kubernetes secret
+
+### TODO
+- Remove `status.phase` as a way to track reconcile, it adds un-necessary and redundant checks whether a reconcile is needed
