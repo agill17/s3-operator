@@ -9,7 +9,7 @@
 - [x] Delete bucket
 - [ ] Update bucket ( need to add more bucket spec to support updates )
 - [ ] Bucket spec (properties, management, permissions, etc)
-- [ ] Restrict bucket access to IAM user being created (using iam policy and attaching to user)
+- [x] Restrict bucket access to IAM user being created (using inline iam policy and attaching to user)
 - [x] Create/Recreate/Update kubernetes service of type externalName ( pointing to `s3.amazonaws.com` )
 - [x] Create/Recreate (if deleted from AWS) IAM user
 - [x] Delete IAM user 
