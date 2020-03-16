@@ -1,9 +1,9 @@
 package s3
 
 import (
-	"fmt"
 	"context"
 	agillv1alpha1 "github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
+	customErrors "github.com/agill17/s3-operator/pkg/controller/errors"
 	"github.com/agill17/s3-operator/pkg/utils"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/s3/s3iface"
@@ -123,27 +123,19 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 		return reconcile.Result{}, nil
 	}
 
-	switch cr.Status.Phase {
-	case "":
-		return handleEmptyPhase(cr, r.client)
-	case agillv1alpha1.CREATE_IAM_RESOURCES:
-		reqLogger.Info("Reconciling createIamResource Phase...")
-		return r.handleCreateIamResources(cr)
-	case agillv1alpha1.CREATE_S3_RESOURCES:
-		reqLogger.Info("Reconciling createS3Resources Phase...")
-		return r.handleCreateS3Resources(cr)
-	case agillv1alpha1.COMPLETED:
-		isReconcileNeeded, errCheckingForUpdates := r.isReconcileNeeded(cr)
-		if errCheckingForUpdates != nil {
-			return reconcile.Result{}, errCheckingForUpdates
+	// create/update all IAM related resources ( user, inline policy, access keys, k8s secrets )
+	if errCreatingIAMResources := r.handleCreateIamResources(cr); errCreatingIAMResources != nil {
+		if _, ok := errCreatingIAMResources.(customErrors.ErrorIAMK8SSecretNeedsUpdate); ok {
+			return reconcile.Result{Requeue:true}, nil
 		}
-
-		if isReconcileNeeded {
-			cr.Status.Phase = agillv1alpha1.CREATE_IAM_RESOURCES
-			return reconcile.Result{Requeue: true}, utils.UpdateCrStatus(cr, r.client)
-		}
-		reqLogger.Info(fmt.Sprintf("No updates needed for %v/%v: ", cr.GetNamespace(), cr.GetName()))
+		return reconcile.Result{}, errCreatingIAMResources
 	}
+
+	// create/update all S3 related resources ( bucket, k8s external name service )
+	if errCreatingS3Resources := r.handleCreateS3Resources(cr); errCreatingS3Resources != nil {
+		return reconcile.Result{}, errCreatingS3Resources
+	}
+
 
 	return reconcile.Result{}, nil
 }

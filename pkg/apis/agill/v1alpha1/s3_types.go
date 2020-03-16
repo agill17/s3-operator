@@ -22,15 +22,8 @@ type IAMUser struct {
 }
 
 
-type Phase string
-var CREATE_IAM_RESOURCES Phase = "createIamResources"
-var CREATE_S3_RESOURCES Phase = "createS3Resources"
-var COMPLETED Phase = "completed"
-
-
 // S3Status defines the observed state of S3
 type S3Status struct {
-	Phase Phase `json:"phase"`
 	AccessKeyId string `json:"accessKeyId"`
 	SecretAccessKey string `json:"secretAccessKey"`
 }

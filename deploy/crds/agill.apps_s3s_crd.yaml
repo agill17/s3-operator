@@ -57,13 +57,10 @@ spec:
           properties:
             accessKeyId:
               type: string
-            phase:
-              type: string
             secretAccessKey:
               type: string
           required:
           - accessKeyId
-          - phase
           - secretAccessKey
           type: object
       type: object

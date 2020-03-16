@@ -3,7 +3,6 @@ package s3
 import (
 	"context"
 	agillv1alpha1 "github.com/agill17/s3-operator/pkg/apis/agill/v1alpha1"
-	"github.com/agill17/s3-operator/pkg/utils"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -30,7 +29,7 @@ func createIamK8sSecret(cr *agillv1alpha1.S3, accessKeyId, secretAccessKey strin
 		return err
 	}
 
-	return utils.UpdateCrStatus(cr, client)
+	return nil
 }
 
 

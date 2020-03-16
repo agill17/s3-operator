@@ -9,4 +9,3 @@ spec:
   enableObjectLock: false
   iamUser:
     username: agill-test-bucket
-    accessPolicy: arn:aws:iam::aws:policy/AdministratorAccess

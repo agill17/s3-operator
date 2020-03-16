@@ -57,7 +57,6 @@ func handleAccessKeys(cr *v1alpha1.S3, iamClient iamiface.IAMAPI, client client.
 				client, scheme); errCreatingSecret != nil {
 				return errCreatingSecret
 			}
-			return utils.UpdateCrStatus(cr, client)
 		}
 		// if err is something else other then isNotFound, return that error
 		return err
