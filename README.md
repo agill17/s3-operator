@@ -17,5 +17,5 @@
 - [x] Get new fresh pair of access keys by deleting kubernetes secret
 
 ### TODO
-- Remove `status.phase` as a way to track reconcile, it adds un-necessary and redundant checks whether a reconcile is needed
+- ~~Remove `status.phase` as a way to track reconcile, it adds un-necessary and redundant checks whether a reconcile is needed~~
 - Add tags to cloud resources ( as a way to own them ), this way if user or bucket already exists and does not have tags, operator should complain and not perform any actions on it.
