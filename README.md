@@ -4,7 +4,8 @@
 
 ### Installation
 #### Chart
-- ```helm upgrade s3-operator \
+- ```
+  helm upgrade s3-operator \
         chart/s3-operator \
         --install --force --namespace=s3-operator \
         --set AWS_ACCESS_KEY_ID=<YOUR_ACCESS_KEY> \
