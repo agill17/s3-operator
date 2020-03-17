@@ -3,13 +3,14 @@
 ### Overview
 
 ### Installation
-#### Chart
-- ```
+-  Helm Chart
+```
   helm upgrade s3-operator \
         chart/s3-operator \
         --install --force --namespace=s3-operator \
         --set AWS_ACCESS_KEY_ID=<YOUR_ACCESS_KEY> \
-        --set AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KET>```
+        --set AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KET>
+```
 
 ### Features
 - [x] Create/Recreate(if deleted from AWS) Bucket
