@@ -3,7 +3,7 @@
 ### Overview
 
 ### Installation
--  Helm Chart
+-  Helm Chart ( Helm v3 )
 ```
   kubectl create ns s3-operator
 ```
