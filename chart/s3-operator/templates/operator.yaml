@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3-operator
+  namespace:  {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: s3-operator
+  template:
+    metadata:
+      labels:
+        name: s3-operator
+    spec:
+      serviceAccountName: {{ include "s3-operator.serviceAccountName" . }}
+      containers:
+        - name: s3-operator
+          image: {{ .Values.image.name }}
+          imagePullPolicy: {{ .Values.image.pullPolicy}}
+          command:
+          - s3-operator
+          {{- if .Values.devLogs }}
+          args:
+          - --zap-devel
+          {{- end }}
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              value: {{ .Values.AWS_ACCESS_KEY_ID | quote }}
+            - name: AWS_SECRET_ACCESS_KEY
+              value: {{ .Values.AWS_SECRET_ACCESS_KEY | quote }}
+            - name: syncPeriod
+              value: {{ .Values.syncPeriod | quote }}
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "s3-operator"
