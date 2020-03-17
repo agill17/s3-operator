@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strconv"
 	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -38,6 +39,12 @@ var (
 	metricsPort         int32 = 8383
 	operatorMetricsPort int32 = 8686
 )
+
+const (
+	SYNC_PERIOD = "syncPeriod"
+	DEFAULT_SYNC_PERIOD_IN_SECS = "300"
+)
+
 var log = logf.Log.WithName("cmd")
 
 func printVersion() {
@@ -87,7 +94,8 @@ func main() {
 	}
 
 	// Create a new Cmd to provide shared dependencies and start components
-	syncPeriod := 5 * time.Minute
+	syncPeriod := getSyncTime()
+	log.Info(fmt.Sprintf("All Custom resources will be reconciled every %v secs, in addition to event based triggers", syncPeriod.Seconds()))
 	mgr, err := manager.New(cfg, manager.Options{
 		Namespace:          "",
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
@@ -183,4 +191,18 @@ func serveCRMetrics(cfg *rest.Config) error {
 		return err
 	}
 	return nil
+}
+
+
+func getSyncTime() time.Duration {
+	val, found := os.LookupEnv(SYNC_PERIOD)
+	if !found {
+		val = DEFAULT_SYNC_PERIOD_IN_SECS
+	}
+	syncPeriod, err := strconv.ParseInt(val,10, 0)
+	if err != nil {
+		log.Error(err, "Error parsing sync period... killing main..")
+		os.Exit(1)
+	}
+	return time.Duration(syncPeriod) * time.Second
 }

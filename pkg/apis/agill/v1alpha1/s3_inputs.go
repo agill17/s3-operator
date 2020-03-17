@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/davecgh/go-spew/spew"
 )
 
 
@@ -78,7 +77,6 @@ func (s S3) CreateIAMUserIn() *iam.CreateUserInput {
 	iamUserIn := &iam.CreateUserInput{
 		UserName:            aws.String(s.Spec.IAMUserSpec.Username),
 	}
-	spew.Dump(iamUserIn)
 	return iamUserIn
 }
 
@@ -94,7 +92,7 @@ func (s S3) GetIAMK8SSecretName() string {
 	return fmt.Sprintf("%v-iam-secret", s.GetName())
 }
 
-func (s S3)CreateRestrictedInlinePolicyForBucket() (*iam.PutUserPolicyInput, error) {
+func (s S3)GetRestrictedInlinePolicyInput() (*iam.PutUserPolicyInput, error) {
 	policyDoc, err := DesiredRestrictedPolicyDocForBucket(s.GetPolicyName(), s.Spec.BucketName)
 	if err != nil {
 		return nil, err

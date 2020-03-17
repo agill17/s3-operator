@@ -16,6 +16,12 @@
 - [x] Create/Recreate/Update secret which contains IAM user credentials ( `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`)
 - [x] Get new fresh pair of access keys by deleting kubernetes secret
 
+
+### Notes
+- In addition to event based trigger to reconcile, a periodic sync is also in place to reconcile every n seconds.
+    - Default periodic sync period is set to 300 seconds.
+    - Can be changed by update `syncPeriod` env variable in operator deployment.
+
 ### TODO
 - Remove `status.phase` as a way to track reconcile, it adds un-necessary and redundant checks whether a reconcile is needed
 - Add tags to cloud resources ( as a way to own them ), this way if user or bucket already exists and does not have tags, operator should complain and not perform any actions on it.

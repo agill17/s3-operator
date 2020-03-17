@@ -107,20 +107,3 @@ func DeleteIAMInlinePolicyFromUser(policyName, username string, iamClient iamifa
 	})
 	return errDeletingInlinePolicy
 }
-
-
-func IAMUserPolicyExists(policyName, iamUser string, iamClient iamiface.IAMAPI) (bool, error) {
-	_, err := iamClient.GetUserPolicy(&iam.GetUserPolicyInput{
-		PolicyName: &policyName,
-		UserName:   &iamUser,
-	})
-	if err != nil {
-		if awsErr, isAwsErr := err.(awserr.Error); isAwsErr {
-			if awsErr.Code() == iam.ErrCodeNoSuchEntityException {
-				return false, nil
-			}
-		}
-		return false, err
-	}
-	return true, nil
-}
