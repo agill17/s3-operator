@@ -11,10 +11,21 @@ import (
 type S3Spec struct {
 	// +optional
 	IAMUserSpec IAMUser `json:"iamUser"`
+
+	// +kubebuilder:validation:Required
 	Region string `json:"region,required"`
+
+	// +kubebuilder:validation:Required
 	BucketName string `json:"bucketName,required"`
-	BucketACL string `json:"bucketACL"`
-	EnableObjectLock bool `json:"enableObjectLock"`
+
+	// The canned ACL to apply to the bucket.
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Enum:=private;public-read;public-read-write;authenticated-read
+	BucketACL string `json:"bucketACL,required"`
+
+	// Specifies whether you want S3 Object Lock to be enabled for the new bucket.
+	// +optional
+	EnableObjectLock bool `json:"enableObjectLock,omitempty"`
 }
 
 type IAMUser struct {

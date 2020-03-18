@@ -4,7 +4,8 @@ metadata:
   name: example-s3
 spec:
   region: us-east-1
-  bucketACL: public-read
+  ## valid values: private,public-read,public-read-write,authenticated-read
+  bucketACL: private
   bucketName: agill-test-bucket
   enableObjectLock: false
   iamUser:

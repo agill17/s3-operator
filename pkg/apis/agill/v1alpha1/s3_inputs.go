@@ -52,14 +52,24 @@ func DesiredRestrictedPolicyDocForBucket(policyName string, bucketName string) (
 
 func (s S3) CreateBucketIn() *s3.CreateBucketInput {
 	s3Input := &s3.CreateBucketInput{
-		ACL:                        aws.String(s.Spec.BucketACL),
 		Bucket:                     aws.String(s.Spec.BucketName),
-		ObjectLockEnabledForBucket: aws.Bool(s.Spec.EnableObjectLock),
 	}
 	if s.Spec.Region != "us-east-1" {
 		s3Input.CreateBucketConfiguration = s.SetBucketLocation()
 	}
+
+	if s.Spec.EnableObjectLock {
+		s3Input.ObjectLockEnabledForBucket = aws.Bool(s.Spec.EnableObjectLock)
+	}
+
 	return s3Input
+}
+
+func (s S3) PutBucketAclIn() *s3.PutBucketAclInput {
+	return &s3.PutBucketAclInput{
+		ACL:                 aws.String(s.Spec.BucketACL),
+		Bucket:              aws.String(s.Spec.BucketName),
+	}
 }
 
 func (s S3) DeleteBucketIn() *s3.DeleteBucketInput {

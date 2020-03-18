@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 image:
-  name: agill17/s3-operator:0.6.1
+  name: agill17/s3-operator:0.6.2
   pullPolicy: Always
 
 ## your aws creds goes here

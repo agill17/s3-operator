@@ -30,6 +30,11 @@ func (r ReconcileS3) createBucket(cr *v1alpha1.S3) error {
 		spew.Dump(out)
 		r.recorder.Eventf(cr, v1.EventTypeNormal, "CREATED", "S3 Bucket created successfully")
 	}
+
+	if _, errPuttingBucketAcl := r.s3Client.PutBucketAcl(cr.PutBucketAclIn()); errPuttingBucketAcl != nil {
+		return errPuttingBucketAcl
+	}
+
 	return nil
 }
 

@@ -32,10 +32,18 @@ spec:
           description: S3Spec defines the desired state of S3
           properties:
             bucketACL:
+              description: The canned ACL to apply to the bucket.
+              enum:
+              - private
+              - public-read
+              - public-read-write
+              - authenticated-read
               type: string
             bucketName:
               type: string
             enableObjectLock:
+              description: Specifies whether you want S3 Object Lock to be enabled
+                for the new bucket.
               type: boolean
             iamUser:
               properties:
@@ -49,7 +57,6 @@ spec:
           required:
           - bucketACL
           - bucketName
-          - enableObjectLock
           - region
           type: object
         status:
