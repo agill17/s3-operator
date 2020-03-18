@@ -14,6 +14,7 @@
         --set AWS_ACCESS_KEY_ID=<YOUR_ACCESS_KEY> \
         --set AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
 ```
+- Sample S3 CR can be found [here](https://github.com/agill17/s3-operator/blob/master/deploy/crds/agill.apps_v1alpha1_s3_cr.yaml)
 
 ### Features
 - [x] Create/Recreate(if deleted from AWS) Bucket
