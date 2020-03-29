@@ -45,6 +45,14 @@ spec:
               description: Specifies whether you want S3 Object Lock to be enabled
                 for the new bucket.
               type: boolean
+            enableTransferAcceleration:
+              description: Decides whether transfer acceleration should be enabled.
+                Defaults to false
+              type: boolean
+            enableVersioning:
+              description: Decides whether versioning should be enabled. Defaults
+                to false.
+              type: boolean
             iamUser:
               properties:
                 username:

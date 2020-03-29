@@ -16,7 +16,7 @@ spec:
       serviceAccountName: s3-operator
       containers:
         - name: s3-operator
-          image: agill17/s3-operator:0.6.1
+          image: agill17/s3-operator:0.6.3
           imagePullPolicy: Always
           command:
           - s3-operator

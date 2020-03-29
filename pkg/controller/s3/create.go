@@ -35,6 +35,14 @@ func (r ReconcileS3) createBucket(cr *v1alpha1.S3) error {
 		return errPuttingBucketAcl
 	}
 
+	if _, errPuttingBucketVersionong := r.s3Client.PutBucketVersioning(cr.PutBucketVersioningIn()); errPuttingBucketVersionong != nil {
+		return errPuttingBucketVersionong
+	}
+
+	if _, errPuttingBucketAcceleration := r.s3Client.PutBucketAccelerateConfiguration(cr.PutBucketAccelIn()); errPuttingBucketAcceleration != nil {
+		return errPuttingBucketAcceleration
+	}
+
 	return nil
 }
 

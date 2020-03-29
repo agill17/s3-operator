@@ -26,6 +26,13 @@ type S3Spec struct {
 	// Specifies whether you want S3 Object Lock to be enabled for the new bucket.
 	// +optional
 	EnableObjectLock bool `json:"enableObjectLock,omitempty"`
+
+	// Decides whether versioning should be enabled. Defaults to false.
+	// +optional
+	EnableVersioning bool `json:"enableVersioning,omitempty"`
+
+	// Decides whether transfer acceleration should be enabled. Defaults to false
+	EnableTransferAcceleration bool `json:"enableTransferAcceleration,omitempty"`
 }
 
 type IAMUser struct {

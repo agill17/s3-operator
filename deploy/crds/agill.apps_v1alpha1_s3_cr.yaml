@@ -7,6 +7,9 @@ spec:
   ## valid values: private,public-read,public-read-write,authenticated-read
   bucketACL: private
   bucketName: agill-test-bucket
+  ## only available when creating the bucket for the first time
   enableObjectLock: false
+  enableVersioning: true
+  enableTransferAcceleration: true
   iamUser:
     username: agill-test-bucket

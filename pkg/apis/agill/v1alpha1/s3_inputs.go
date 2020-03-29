@@ -72,6 +72,32 @@ func (s S3) PutBucketAclIn() *s3.PutBucketAclInput {
 	}
 }
 
+func (s S3) PutBucketVersioningIn() *s3.PutBucketVersioningInput {
+	var enableStatus = s3.BucketVersioningStatusSuspended
+	if s.Spec.EnableVersioning {
+		enableStatus = s3.BucketAccelerateStatusEnabled
+	}
+	return &s3.PutBucketVersioningInput{
+		Bucket:                  aws.String(s.Spec.BucketName),
+		MFA:                     nil,
+		VersioningConfiguration: &s3.VersioningConfiguration{
+			Status:    aws.String(enableStatus),
+		},
+	}
+}
+
+func (s S3) PutBucketAccelIn() *s3.PutBucketAccelerateConfigurationInput {
+	var status = s3.BucketAccelerateStatusSuspended
+	if s.Spec.EnableTransferAcceleration {
+		status = s3.BucketAccelerateStatusEnabled
+	}
+	return &s3.PutBucketAccelerateConfigurationInput{
+		AccelerateConfiguration: &s3.AccelerateConfiguration{Status:aws.String(status)},
+		Bucket:                  aws.String(s.Spec.BucketName),
+	}
+}
+
+
 func (s S3) DeleteBucketIn() *s3.DeleteBucketInput {
 	return &s3.DeleteBucketInput{Bucket:aws.String(s.Spec.BucketName)}
 }
