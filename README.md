@@ -25,19 +25,19 @@ the IAM resources and S3 resources will get deleted with it.
 - Sample S3 CR can be found [here](https://github.com/agill17/s3-operator/blob/master/deploy/crds/agill.apps_v1alpha1_s3_cr.yaml)
 
 ### Features
-|Features                               | Create                | Delete                | Update |
-|---------------------------------------|-----------------------|-----------------------|-----------------------|
-| S3 Bucket                             | :heavy_check_mark:    | :heavy_check_mark:    |                       |
-| S3 Versioning                         | :heavy_check_mark:    | :heavy_check_mark:    | :heavy_check_mark:    |
-| S3 Transfer Acceleration              | :heavy_check_mark:    | :heavy_check_mark:    | :heavy_check_mark:    |
-| S3 Canned ACL                         | :heavy_check_mark:    | :heavy_check_mark:    | :heavy_check_mark:    |
-| S3 Object Locking ( only on create)   | :heavy_check_mark:    | :heavy_check_mark:    |        |
-| Bucket Transfer Acceleration          | :heavy_check_mark:    | :heavy_check_mark:    | :heavy_check_mark:    |
-| Kubernetes service for s3             | :heavy_check_mark:    | :heavy_check_mark:    | :heavy_check_mark:    |
-| IAM user                              | :heavy_check_mark:    | :heavy_check_mark:    | :heavy_check_mark:    |
-| IAM user restricted access to bucket  | :heavy_check_mark:    | :heavy_check_mark:    | :heavy_check_mark:    |
-| IAM user access keys                  | :heavy_check_mark:    | :heavy_check_mark:    | :heavy_check_mark:    |
-| IAM user access keys in k8s secret    | :heavy_check_mark:    | :heavy_check_mark:    | :heavy_check_mark:    |
+|Features                               | Create | Delete   | Update |
+|---------------------------------------|--------|----------|--------|
+| S3 Bucket                             | ✅     | ✅     |       |
+| S3 Versioning                         | ✅     | ✅     | ✅    |
+| S3 Transfer Acceleration              | ✅     | ✅     | ✅    |
+| S3 Canned ACL                         | ✅     | ✅     | ✅    |
+| S3 Object Locking ( only on create)   | ✅     |        |        |
+| Bucket Transfer Acceleration          | ✅     | ✅     | ✅    |
+| Kubernetes service for s3             | ✅     | ✅     | ✅    |
+| IAM user                              | ✅     | ✅     | ✅    |
+| IAM user restricted access to bucket  | ✅     | ✅     | ✅    |
+| IAM user access keys                  | ✅     | ✅     | ✅    |
+| IAM user access keys in k8s secret    | ✅     | ✅     | ✅    |
 
 
 
