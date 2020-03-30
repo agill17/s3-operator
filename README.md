@@ -28,9 +28,10 @@ the IAM resources and S3 resources will get deleted with it.
 |Features                               | Create | Delete   | Update |
 |---------------------------------------|--------|----------|--------|
 | S3 Bucket                             | ✅     | ✅     |       |
-| S3 Versioning                         | ✅     | ✅     | ✅    |
-| S3 Transfer Acceleration              | ✅     | ✅     | ✅    |
-| S3 Canned ACL                         | ✅     | ✅     | ✅    |
+| Bucket Versioning                     | ✅     | ✅     | ✅    |
+| Bucket Transfer Acceleration          | ✅     | ✅     | ✅    |
+| Bucket Canned ACL                     | ✅     | ✅     | ✅    |
+| Bucket Policy                         | ✅     | ✅     | ✅    |
 | S3 Object Locking ( only on create)   | ✅     |        |        |
 | Bucket Transfer Acceleration          | ✅     | ✅     | ✅    |
 | Kubernetes service for s3             | ✅     | ✅     | ✅    |

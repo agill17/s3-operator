@@ -32,7 +32,11 @@ type S3Spec struct {
 	EnableVersioning bool `json:"enableVersioning,omitempty"`
 
 	// Decides whether transfer acceleration should be enabled. Defaults to false
+	// +optional
 	EnableTransferAcceleration bool `json:"enableTransferAcceleration,omitempty"`
+
+	// +optional
+	BucketPolicy string `json:"bucketPolicy,omitempty"`
 }
 
 type IAMUser struct {

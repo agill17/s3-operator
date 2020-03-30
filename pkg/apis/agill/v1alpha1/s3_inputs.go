@@ -100,6 +100,13 @@ func (s S3) DeleteBucketIn() *s3.DeleteBucketInput {
 	return &s3.DeleteBucketInput{Bucket: aws.String(s.Spec.BucketName)}
 }
 
+func (s S3) PutBucketPolicyIn() *s3.PutBucketPolicyInput {
+	return &s3.PutBucketPolicyInput{
+		Bucket: aws.String(s.Spec.BucketName),
+		Policy: aws.String(s.Spec.BucketPolicy),
+	}
+}
+
 func (s S3) SetBucketLocation() *s3.CreateBucketConfiguration {
 	if s.Spec.Region != "" {
 		return &s3.CreateBucketConfiguration{LocationConstraint: aws.String(s.Spec.Region)}

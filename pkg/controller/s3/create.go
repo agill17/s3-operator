@@ -6,6 +6,7 @@ import (
 	customErrors "github.com/agill17/s3-operator/pkg/controller/errors"
 	"github.com/agill17/s3-operator/pkg/utils"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
 	"github.com/davecgh/go-spew/spew"
 	v1 "k8s.io/api/core/v1"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
@@ -43,7 +44,21 @@ func (r ReconcileS3) createBucket(cr *v1alpha1.S3) error {
 		return errPuttingBucketAcceleration
 	}
 
+	return PutBucketPolicy(cr, r.s3Client)
+}
+
+func PutBucketPolicy(cr *v1alpha1.S3, s3Client s3iface.S3API) error {
+	if cr.Spec.BucketPolicy != "" {
+		input := cr.PutBucketPolicyIn()
+		if err := input.Validate(); err != nil {
+			return err
+		}
+		if _, err := s3Client.PutBucketPolicy(input); err != nil {
+			return err
+		}
+	}
 	return nil
+
 }
 
 // if secret is not found in namespace, create new access keys ( delete the rest of the access keys if any )

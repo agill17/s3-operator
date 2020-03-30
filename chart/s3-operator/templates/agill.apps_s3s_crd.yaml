@@ -41,6 +41,8 @@ spec:
               type: string
             bucketName:
               type: string
+            bucketPolicy:
+              type: string
             enableObjectLock:
               description: Specifies whether you want S3 Object Lock to be enabled
                 for the new bucket.
