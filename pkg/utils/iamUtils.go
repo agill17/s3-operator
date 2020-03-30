@@ -8,7 +8,7 @@ import (
 )
 
 func IAMUserExists(username string, iamClient iamiface.IAMAPI) (bool, error) {
-	_, err := iamClient.GetUser(&iam.GetUserInput{UserName:&username})
+	_, err := iamClient.GetUser(&iam.GetUserInput{UserName: &username})
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == iam.ErrCodeNoSuchEntityException {
@@ -38,7 +38,7 @@ func DeleteAllAccessKeys(iamUser string, iamapi iamiface.IAMAPI) error {
 	}
 
 	for _, e := range accessKeys.AccessKeyMetadata {
-		if err := DeleteAccessKey(*e.AccessKeyId, iamUser, iamapi) ; err != nil {
+		if err := DeleteAccessKey(*e.AccessKeyId, iamUser, iamapi); err != nil {
 			return err
 		}
 	}
@@ -64,7 +64,7 @@ func DeleteAllUserInlinePolicies(iamUser string, iamapi iamiface.IAMAPI) error {
 			return errDetaching
 		}
 	}
-	return  nil
+	return nil
 }
 
 func GetAccessKeyForUser(username string, iamclient iamiface.IAMAPI) (string, error) {
@@ -84,7 +84,7 @@ func GetAccessKeyForUser(username string, iamclient iamiface.IAMAPI) (string, er
 }
 
 func CreateAccessKeys(username string, iamapi iamiface.IAMAPI) (*iam.CreateAccessKeyOutput, error) {
-	return iamapi.CreateAccessKey(&iam.CreateAccessKeyInput{UserName:&username})
+	return iamapi.CreateAccessKey(&iam.CreateAccessKeyInput{UserName: &username})
 }
 
 func CreateIAMUser(input *iam.CreateUserInput, iamClient iamiface.IAMAPI) error {
@@ -93,7 +93,7 @@ func CreateIAMUser(input *iam.CreateUserInput, iamClient iamiface.IAMAPI) error 
 		return checkErr
 	}
 	if !userExists {
-		if _, errCreatingUser := iamClient.CreateUser(input); errCreatingUser!= nil {
+		if _, errCreatingUser := iamClient.CreateUser(input); errCreatingUser != nil {
 			return errCreatingUser
 		}
 	}

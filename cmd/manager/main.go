@@ -41,7 +41,7 @@ var (
 )
 
 const (
-	SYNC_PERIOD = "syncPeriod"
+	SYNC_PERIOD                 = "syncPeriod"
 	DEFAULT_SYNC_PERIOD_IN_SECS = "300"
 )
 
@@ -77,7 +77,6 @@ func main() {
 
 	printVersion()
 
-
 	// Get a config to talk to the apiserver
 	cfg, err := config.GetConfig()
 	if err != nil {
@@ -99,7 +98,7 @@ func main() {
 	mgr, err := manager.New(cfg, manager.Options{
 		Namespace:          "",
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
-		SyncPeriod: &syncPeriod,
+		SyncPeriod:         &syncPeriod,
 	})
 	if err != nil {
 		log.Error(err, "")
@@ -193,13 +192,12 @@ func serveCRMetrics(cfg *rest.Config) error {
 	return nil
 }
 
-
 func getSyncTime() time.Duration {
 	val, found := os.LookupEnv(SYNC_PERIOD)
 	if !found {
 		val = DEFAULT_SYNC_PERIOD_IN_SECS
 	}
-	syncPeriod, err := strconv.ParseInt(val,10, 0)
+	syncPeriod, err := strconv.ParseInt(val, 10, 0)
 	if err != nil {
 		log.Error(err, "Error parsing sync period... killing main..")
 		os.Exit(1)

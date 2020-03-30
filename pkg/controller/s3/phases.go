@@ -17,7 +17,7 @@ func (r ReconcileS3) handleCreateIamResources(cr *agillv1alpha1.S3) error {
 		return errCreatingUpdatingPolicy
 	}
 
-	return handleAccessKeys(cr, r.iamClient, r.client, r.scheme);
+	return handleAccessKeys(cr, r.iamClient, r.client, r.scheme)
 }
 
 // meant to create cloud resources if they do not exist ( s3, iam user )
@@ -32,5 +32,3 @@ func (r ReconcileS3) handleCreateS3Resources(cr *agillv1alpha1.S3) error {
 	r.recorder.Eventf(cr, v1.EventTypeNormal, "COMPLETED", "All resources are successfully reconciled.")
 	return createS3K8sService(cr, r.client, r.scheme)
 }
-
-

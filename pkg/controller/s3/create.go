@@ -106,4 +106,3 @@ func CreateOrUpdateIAMPolicy(cr *v1alpha1.S3, iamClient iamiface.IAMAPI) error {
 	return nil
 
 }
-

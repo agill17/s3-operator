@@ -12,7 +12,6 @@ func (e ErrorIAMK8SSecretNeedsUpdate) Error() string {
 	return e.Message
 }
 
-
 func (e ErrorIAMInlinePolicyNeedsUpdate) Error() string {
 	return e.Message
 }

@@ -30,7 +30,7 @@ func AddFinalizer(whichFinalizer string, client client.Client, runtimeObj runtim
 	return nil
 }
 
-func RemoveFinalizer(whichFinalizer string, runtimeOj runtime.Object, client client.Client) error{
+func RemoveFinalizer(whichFinalizer string, runtimeOj runtime.Object, client client.Client) error {
 	meta, err := meta.Accessor(runtimeOj)
 	if err != nil {
 		return err

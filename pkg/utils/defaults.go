@@ -1,7 +1,6 @@
 package utils
 
-
 const (
-	S3_FINALIZER = "agill.apps.s3"
+	S3_FINALIZER  = "agill.apps.s3"
 	IAM_FINALIZER = "agill.apps.iam"
 )

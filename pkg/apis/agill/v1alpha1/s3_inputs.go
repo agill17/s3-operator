@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-
 type userPolicy struct {
 	Version    string                `json:"Version"`
 	ID         string                `json:"Id"`
@@ -16,8 +15,8 @@ type userPolicy struct {
 }
 
 type userPolicyStatement struct {
-	SID      string `json:"Sid"`
-	Effect   string `json:"Effect"`
+	SID      string   `json:"Sid"`
+	Effect   string   `json:"Effect"`
 	Action   []string `json:"Action"`
 	Resource []string `json:"Resource"`
 }
@@ -31,13 +30,13 @@ func DesiredRestrictedPolicyDocForBucket(policyName string, bucketName string) (
 				SID:      "1",
 				Effect:   "Allow",
 				Action:   []string{"s3:*"},
-				Resource: []string{fmt.Sprintf("arn:aws:s3:::%v",bucketName)},
+				Resource: []string{fmt.Sprintf("arn:aws:s3:::%v", bucketName)},
 			},
 			{
 				SID:      "2",
 				Effect:   "Allow",
 				Action:   []string{"s3:*"},
-				Resource: []string{fmt.Sprintf("arn:aws:s3:::%v/*",bucketName)},
+				Resource: []string{fmt.Sprintf("arn:aws:s3:::%v/*", bucketName)},
 			},
 		},
 	}
@@ -52,7 +51,7 @@ func DesiredRestrictedPolicyDocForBucket(policyName string, bucketName string) (
 
 func (s S3) CreateBucketIn() *s3.CreateBucketInput {
 	s3Input := &s3.CreateBucketInput{
-		Bucket:                     aws.String(s.Spec.BucketName),
+		Bucket: aws.String(s.Spec.BucketName),
 	}
 	if s.Spec.Region != "us-east-1" {
 		s3Input.CreateBucketConfiguration = s.SetBucketLocation()
@@ -67,8 +66,8 @@ func (s S3) CreateBucketIn() *s3.CreateBucketInput {
 
 func (s S3) PutBucketAclIn() *s3.PutBucketAclInput {
 	return &s3.PutBucketAclInput{
-		ACL:                 aws.String(s.Spec.BucketACL),
-		Bucket:              aws.String(s.Spec.BucketName),
+		ACL:    aws.String(s.Spec.BucketACL),
+		Bucket: aws.String(s.Spec.BucketName),
 	}
 }
 
@@ -78,10 +77,10 @@ func (s S3) PutBucketVersioningIn() *s3.PutBucketVersioningInput {
 		enableStatus = s3.BucketAccelerateStatusEnabled
 	}
 	return &s3.PutBucketVersioningInput{
-		Bucket:                  aws.String(s.Spec.BucketName),
-		MFA:                     nil,
+		Bucket: aws.String(s.Spec.BucketName),
+		MFA:    nil,
 		VersioningConfiguration: &s3.VersioningConfiguration{
-			Status:    aws.String(enableStatus),
+			Status: aws.String(enableStatus),
 		},
 	}
 }
@@ -92,14 +91,13 @@ func (s S3) PutBucketAccelIn() *s3.PutBucketAccelerateConfigurationInput {
 		status = s3.BucketAccelerateStatusEnabled
 	}
 	return &s3.PutBucketAccelerateConfigurationInput{
-		AccelerateConfiguration: &s3.AccelerateConfiguration{Status:aws.String(status)},
+		AccelerateConfiguration: &s3.AccelerateConfiguration{Status: aws.String(status)},
 		Bucket:                  aws.String(s.Spec.BucketName),
 	}
 }
 
-
 func (s S3) DeleteBucketIn() *s3.DeleteBucketInput {
-	return &s3.DeleteBucketInput{Bucket:aws.String(s.Spec.BucketName)}
+	return &s3.DeleteBucketInput{Bucket: aws.String(s.Spec.BucketName)}
 }
 
 func (s S3) SetBucketLocation() *s3.CreateBucketConfiguration {
@@ -111,7 +109,7 @@ func (s S3) SetBucketLocation() *s3.CreateBucketConfiguration {
 
 func (s S3) CreateIAMUserIn() *iam.CreateUserInput {
 	iamUserIn := &iam.CreateUserInput{
-		UserName:            aws.String(s.Spec.IAMUserSpec.Username),
+		UserName: aws.String(s.Spec.IAMUserSpec.Username),
 	}
 	return iamUserIn
 }
@@ -128,7 +126,7 @@ func (s S3) GetIAMK8SSecretName() string {
 	return fmt.Sprintf("%v-iam-secret", s.GetName())
 }
 
-func (s S3)GetRestrictedInlinePolicyInput() (*iam.PutUserPolicyInput, error) {
+func (s S3) GetRestrictedInlinePolicyInput() (*iam.PutUserPolicyInput, error) {
 	policyDoc, err := DesiredRestrictedPolicyDocForBucket(s.GetPolicyName(), s.Spec.BucketName)
 	if err != nil {
 		return nil, err

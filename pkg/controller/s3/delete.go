@@ -33,7 +33,6 @@ func DeleteUser(username string, iamClient iamiface.IAMAPI) error {
 	return nil
 }
 
-
 // Assumes empty the bucket , then delete
 func DeleteBucket(bucketName string, s3Client s3iface.S3API) error {
 

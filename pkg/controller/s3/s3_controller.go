@@ -21,6 +21,7 @@ import (
 )
 
 const S3_CONTROLLER = "s3Controller"
+
 var log = logf.Log.WithName("controller_s3")
 
 // Add creates a new S3 Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -73,11 +74,11 @@ var _ reconcile.Reconciler = &ReconcileS3{}
 
 // ReconcileS3 reconciles a S3 object
 type ReconcileS3 struct {
-	client client.Client
-	scheme *runtime.Scheme
-	s3Client s3iface.S3API
+	client    client.Client
+	scheme    *runtime.Scheme
+	s3Client  s3iface.S3API
 	iamClient iamiface.IAMAPI
-	recorder record.EventRecorder
+	recorder  record.EventRecorder
 }
 
 // Reconcile reads that state of the cluster for a S3 object and makes changes based on the state read
@@ -126,7 +127,7 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 	// create/update all IAM related resources ( user, inline policy, access keys, k8s secrets )
 	if errCreatingIAMResources := r.handleCreateIamResources(cr); errCreatingIAMResources != nil {
 		if _, ok := errCreatingIAMResources.(customErrors.ErrorIAMK8SSecretNeedsUpdate); ok {
-			return reconcile.Result{Requeue:true}, nil
+			return reconcile.Result{Requeue: true}, nil
 		}
 		return reconcile.Result{}, errCreatingIAMResources
 	}
@@ -135,7 +136,6 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 	if errCreatingS3Resources := r.handleCreateS3Resources(cr); errCreatingS3Resources != nil {
 		return reconcile.Result{}, errCreatingS3Resources
 	}
-
 
 	return reconcile.Result{}, nil
 }

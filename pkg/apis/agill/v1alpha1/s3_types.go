@@ -39,10 +39,9 @@ type IAMUser struct {
 	Username string `json:"username"`
 }
 
-
 // S3Status defines the observed state of S3
 type S3Status struct {
-	AccessKeyId string `json:"accessKeyId"`
+	AccessKeyId     string `json:"accessKeyId"`
 	SecretAccessKey string `json:"secretAccessKey"`
 }
 
@@ -54,8 +53,8 @@ type S3Status struct {
 type S3 struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec   S3Spec   `json:"spec,omitempty"`
-	Status S3Status `json:"status,omitempty"`
+	Spec              S3Spec   `json:"spec,omitempty"`
+	Status            S3Status `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -8,7 +8,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-
 func BucketExists(bucketName string, s3Client s3iface.S3API) (bool, error) {
 	_, err := s3Client.GetBucketLocation(&s3.GetBucketLocationInput{Bucket: &bucketName})
 	if awserr, ok := err.(awserr.Error); ok && awserr.Code() == s3.ErrCodeNoSuchBucket {
@@ -20,7 +19,7 @@ func BucketExists(bucketName string, s3Client s3iface.S3API) (bool, error) {
 }
 
 func GetBucketACL(bucketName string, s3Client s3iface.S3API) (*s3.GetBucketAclOutput, error) {
-	bucketAcl, err := s3Client.GetBucketAcl(&s3.GetBucketAclInput{Bucket:aws.String(bucketName)})
+	bucketAcl, err := s3Client.GetBucketAcl(&s3.GetBucketAclInput{Bucket: aws.String(bucketName)})
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +32,7 @@ func CreateBucket(createIn *s3.CreateBucketInput, s3Client s3iface.S3API) error 
 		return checkError
 	}
 	if !bucketExists {
-		out,errCreatingBucket := s3Client.CreateBucket(createIn)
+		out, errCreatingBucket := s3Client.CreateBucket(createIn)
 		if errCreatingBucket != nil {
 			return errCreatingBucket
 		}
@@ -41,4 +40,3 @@ func CreateBucket(createIn *s3.CreateBucketInput, s3Client s3iface.S3API) error 
 	}
 	return nil
 }
-

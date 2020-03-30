@@ -28,7 +28,7 @@ func getIamK8sSecret(cr *v1alpha1.S3, client2 client.Client) (*v1.Secret, error)
 	return s, err
 }
 
-func IAMPolicyMatchesDesiredPolicyDocument(desiredPolicyDocument, username, policyName string, iamClient iamiface.IAMAPI) (bool, error){
+func IAMPolicyMatchesDesiredPolicyDocument(desiredPolicyDocument, username, policyName string, iamClient iamiface.IAMAPI) (bool, error) {
 	currentPolicyInAWS, errGetting := iamClient.GetUserPolicy(&iam.GetUserPolicyInput{
 		PolicyName: &policyName,
 		UserName:   &username,
