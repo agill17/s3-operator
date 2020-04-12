@@ -26,8 +26,14 @@ go fmt ./cmd/...
 
 # build and push
 operator-sdk0.15.2 build $IMG:$TAG && docker push $IMG:$TAG
-docker tag $IMG:$TAG $IMG:latest
-docker push $IMG:latest
+if [[ $TAG != "latest" ]]
+then
+    echo "########################################################################################"
+    echo "                             TAGGING LATEST IMAGE                                       "
+    echo "########################################################################################"
+    docker tag $IMG:$TAG $IMG:latest
+    docker push $IMG:latest
+fi
 
 echo "########################################################################################"
 echo "                                  NEW CHANGES                                           "
