@@ -26,6 +26,8 @@ go fmt ./cmd/...
 
 # build and push
 operator-sdk0.15.2 build $IMG:$TAG && docker push $IMG:$TAG
+docker tag $IMG:$TAG $IMG:latest
+docker push $IMG:latest
 
 echo "########################################################################################"
 echo "                                  NEW CHANGES                                           "
