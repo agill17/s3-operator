@@ -109,6 +109,9 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 
 	// handle delete
 	if cr.GetDeletionTimestamp() != nil {
+		if errSettingStatus := setStatus("Deleting", cr, r.client); errSettingStatus != nil {
+			return reconcile.Result{}, errSettingStatus
+		}
 		if errDeletingBucket := DeleteBucket(cr.Spec.BucketName, r.s3Client); errDeletingBucket != nil {
 			return reconcile.Result{}, errDeletingBucket
 		}
@@ -135,6 +138,10 @@ func (r *ReconcileS3) Reconcile(request reconcile.Request) (reconcile.Result, er
 	// create/update all S3 related resources ( bucket, k8s external name service )
 	if errCreatingS3Resources := r.handleCreateS3Resources(cr); errCreatingS3Resources != nil {
 		return reconcile.Result{}, errCreatingS3Resources
+	}
+
+	if errSettingStatus := setStatus("Ready", cr, r.client); errSettingStatus != nil {
+		return reconcile.Result{}, errSettingStatus
 	}
 
 	return reconcile.Result{}, nil

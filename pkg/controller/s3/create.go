@@ -50,7 +50,7 @@ func (r ReconcileS3) createBucket(cr *v1alpha1.S3) error {
 }
 
 func PutBucketPolicy(cr *v1alpha1.S3, s3Client s3iface.S3API) error {
-	
+
 	if cr.Spec.BucketPolicy == "" {
 		_, errDeletingBucketPolicy := s3Client.DeleteBucketPolicy(&s3.DeleteBucketPolicyInput{Bucket: aws.String(cr.Spec.BucketName)})
 		return errDeletingBucketPolicy

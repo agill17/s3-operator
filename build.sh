@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-TAG=${1:-0.6.3}
+TAG=${1:-latest}
 IMG="agill17/s3-operator"
 
 echo "########################################################################################"
@@ -9,6 +9,7 @@ echo "##########################################################################
 
 
 set -e
+
 # generate openapi and crds
 operator-sdk0.15.2 generate openapi
 

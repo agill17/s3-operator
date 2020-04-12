@@ -45,8 +45,7 @@ type IAMUser struct {
 
 // S3Status defines the observed state of S3
 type S3Status struct {
-	AccessKeyId     string `json:"accessKeyId"`
-	SecretAccessKey string `json:"secretAccessKey"`
+	Status string `json:"status"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -54,6 +53,9 @@ type S3Status struct {
 // S3 is the Schema for the s3s API
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=s3s,scope=Namespaced
+// +kubebuilder:printcolumn:name="bucket-name",type=string,JSONPath=`.spec.bucketName`
+// +kubebuilder:printcolumn:name="IAM-User",type=string,JSONPath=`.spec.iamUser.username`
+// +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
 type S3 struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

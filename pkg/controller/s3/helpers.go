@@ -43,3 +43,11 @@ func IAMPolicyMatchesDesiredPolicyDocument(desiredPolicyDocument, username, poli
 	return desiredPolicyDocument == currentPolicyDocInAws, nil
 
 }
+
+func setStatus(msg string, cr *v1alpha1.S3, client client.Client) error {
+	if cr.Status.Status != msg {
+		cr.Status.Status = msg
+		return utils.UpdateCrStatus(cr, client)
+	}
+	return nil
+}

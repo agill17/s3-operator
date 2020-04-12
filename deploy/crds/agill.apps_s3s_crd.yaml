@@ -3,6 +3,16 @@ kind: CustomResourceDefinition
 metadata:
   name: s3s.agill.apps
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.bucketName
+    name: bucket-name
+    type: string
+  - JSONPath: .spec.iamUser.username
+    name: IAM-User
+    type: string
+  - JSONPath: .status.status
+    name: Status
+    type: string
   group: agill.apps
   names:
     kind: S3
@@ -72,13 +82,10 @@ spec:
         status:
           description: S3Status defines the observed state of S3
           properties:
-            accessKeyId:
-              type: string
-            secretAccessKey:
+            status:
               type: string
           required:
-          - accessKeyId
-          - secretAccessKey
+          - status
           type: object
       type: object
   version: v1alpha1
