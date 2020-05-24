@@ -13,6 +13,9 @@ spec:
   - JSONPath: .status.status
     name: Status
     type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   group: agill.apps
   names:
     kind: S3

@@ -56,6 +56,7 @@ type S3Status struct {
 // +kubebuilder:printcolumn:name="bucket-name",type=string,JSONPath=`.spec.bucketName`
 // +kubebuilder:printcolumn:name="IAM-User",type=string,JSONPath=`.spec.iamUser.username`
 // +kubebuilder:printcolumn:name="Status",type=string,JSONPath=`.status.status`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 type S3 struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
