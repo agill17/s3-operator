@@ -17,14 +17,13 @@ jobs:
         uses: actions/checkout@v1
 
       - name: Operator-SDK Build
-        uses: xunholy/operator-sdk-github-action@master
+        uses: dxas90/operator-sdk-github-action
         id: operator-sdk
         env:
           RELEASE_VERSION: v0.15.2
         with:
           image: agill17/s3-operator
           tag: latest
-          dirPath: .
       - name: Debug
         if: ${{ always() }}
         run: |
