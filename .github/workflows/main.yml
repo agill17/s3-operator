@@ -25,6 +25,8 @@ jobs:
         run: |
           pwd
           ls -R build || true
+          ls -lrt build/_output/bin
+          ls -lrt build/_output/bin/workspace
           
       - name: Publish to Registry
         run: |
