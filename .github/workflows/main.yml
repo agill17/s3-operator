@@ -22,16 +22,16 @@ jobs:
         env:
           RELEASE_VERSION: v0.15.2
         with:
-          image: "docker.pkg.github.com/${{github.repository}}/operator"
+          image: "docker.pkg.github.com/${{github.repository}}"
           tag: "${{github.sha}}"
           dirPath: ./s3-operator
 
       - name: Publish docker image
         env:
-          CONTAINER_IMAGE: docker.pkg.github.com/${{github.repository}}/operator:${{github.sha}}
-          CONTAINER_IMAGE_LATEST: docker.pkg.github.com/${{github.repository}}/operator:latest
+          GITSHA_IMAGE_TAG: docker.pkg.github.com/${{github.repository}}:${{github.sha}}
+          LATEST_IMAGE_TAG: docker.pkg.github.com/${{github.repository}}:latest
         run: |
           docker login -u $GITHUB_ACTOR -p ${{secrets.GITHUB_TOKEN}} docker.pkg.github.com
-          docker tag  $CONTAINER_IMAGE $CONTAINER_IMAGE_LATEST
-          docker push $CONTAINER_IMAGE
-          docker push $CONTAINER_IMAGE_LATEST
+          docker tag  $GITSHA_IMAGE_TAG $LATEST_IMAGE_TAG
+          docker push $GITSHA_IMAGE_TAG
+          docker push $LATEST_IMAGE_TAG
