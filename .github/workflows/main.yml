@@ -36,9 +36,9 @@ jobs:
           docker push $GITSHA_IMAGE_TAG
           docker push $LATEST_IMAGE_TAG
 
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.0.0-rc.1
-        with:
-          charts_dir: ./s3-operator/chart/s3-operator
-        env:
-          CR_TOKEN: "${{ secrets.CR_TOKEN }}"
+#       - name: Run chart-releaser
+#         uses: helm/chart-releaser-action@v1.0.0-rc.1
+#         with:
+#           charts_dir: ./s3-operator/chart/s3-operator
+#         env:
+#           CR_TOKEN: "${{ secrets.CR_TOKEN }}"
