@@ -30,7 +30,7 @@ jobs:
         run: |
           ls -lrt
           pwd
-          ls -lrt build || true
+          ls -lrt build/_output/bin || true
       - name: Publish to Registry
         run: |
           docker login docker.pkg.github.com -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
