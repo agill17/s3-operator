@@ -1,19 +1,15 @@
-name: Operator SDK CI
+name: Build
 on:
   push:
 jobs:
-  opreatorbuild:
-    name: Package Chart
+  opreator-build:
+    name: Build operator
     runs-on: ubuntu-latest
     env:
       GOARCH: amd64
       GOOS: linux
     steps:
-      - name: Set up Go 1.14
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.14
-        id: go
+
 
       - name: Check out code
         uses: actions/checkout@v2
@@ -21,7 +17,7 @@ jobs:
           fetch-depth: 1
           path: s3-operator
 
-      - name: Build Container
+      - name: Operator-sdk build
         uses: xunholy/operator-sdk-action@master
         id: operator-sdk
         with:
@@ -29,7 +25,7 @@ jobs:
           tag: "${{github.sha}}"
           dirPath: ./s3-operator
 
-      - name: Build the Docker image
+      - name: Publish docker image
         env:
           CONTAINER_IMAGE: docker.pkg.github.com/${{github.repository}}/operator:${{github.sha}}
           CONTAINER_IMAGE_LATEST: docker.pkg.github.com/${{github.repository}}/operator:latest
