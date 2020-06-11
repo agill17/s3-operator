@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v1
 
       - name: Operator-SDK Build
-        uses: dxas90/operator-sdk-github-action
+        uses: dxas90/operator-sdk-github-action@v3
         id: operator-sdk
         env:
           RELEASE_VERSION: v0.15.2
