@@ -23,9 +23,8 @@ jobs:
       - name: Debug
         if: ${{ always() }}
         run: |
-          ls -lrt
           pwd
-          ls -lrt build/_output/bin || true
+          ls -R build || true
           
       - name: Publish to Registry
         run: |
