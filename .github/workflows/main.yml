@@ -17,7 +17,7 @@ jobs:
           path: s3-operator
 
       - name: Operator-sdk build
-        uses: dxas90/operator-sdk-github-action@v13
+        uses: dxas90/operator-sdk-github-action@v3
         id: operator-sdk
         env:
           RELEASE_VERSION: v0.15.2
