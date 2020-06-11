@@ -1,34 +1,40 @@
-name: Build And Push
-on: [push]
-env:
-  GO111MODULE: on
+name: Operator SDK CI
+on:
+  push:
 jobs:
-  build:
-    name: Build
+  opreatorbuild:
+    name: Package Chart
     runs-on: ubuntu-latest
+    env:
+      GOARCH: amd64
+      GOOS: linux
     steps:
-      
-      - name: Check out code
-        uses: actions/checkout@v1
-
-      - name: Operator-SDK Build
-        uses: dxas90/operator-sdk-github-action@v3
-        id: operator-sdk
-        env:
-          RELEASE_VERSION: v0.15.2
+      - name: Set up Go 1.14
+        uses: actions/setup-go@v1
         with:
-          image: agill17/s3-operator
-          tag: latest
+          go-version: 1.14
+        id: go
 
-      - name: Debug
-        if: ${{ always() }}
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          path: s3-operator
+
+      - name: Build Container
+        uses: xunholy/operator-sdk-action@master
+        id: operator-sdk
+        with:
+          image: "docker.pkg.github.com/${{github.repository}}/operator"
+          tag: "${{github.sha}}"
+          dirPath: ./s3-operator
+
+      - name: Build the Docker image
+        env:
+          CONTAINER_IMAGE: docker.pkg.github.com/${{github.repository}}/operator:${{github.sha}}
+          CONTAINER_IMAGE_LATEST: docker.pkg.github.com/${{github.repository}}/operator:latest
         run: |
-          pwd
-          ls -R build || true
-          ls -lrt build/_output/bin
-          ls -lrt build/_output/bin/workspace
-          
-      - name: Publish to Registry
-        run: |
-          docker login docker.pkg.github.com -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker push "${{steps.operator-sdk.outputs.image}}"
+          docker login -u $GITHUB_ACTOR -p ${{secrets.GITHUB_TOKEN}} docker.pkg.github.com
+          docker tag  $CONTAINER_IMAGE $CONTAINER_IMAGE_LATEST
+          docker push $CONTAINER_IMAGE
+          docker push $CONTAINER_IMAGE_LATEST
