@@ -22,14 +22,14 @@ jobs:
         env:
           RELEASE_VERSION: v0.15.2
         with:
-          image: "docker.pkg.github.com/${{github.repository}}/operator"
+          image: "docker.pkg.github.com/agill17/s3-operator"
           tag: "${{github.sha}}"
           dirPath: ./s3-operator
 
       - name: Publish docker image
         env:
-          GITSHA_IMAGE_TAG: docker.pkg.github.com/${{github.repository}}/operator:${{github.sha}}
-          LATEST_IMAGE_TAG: docker.pkg.github.com/${{github.repository}}/operator:latest
+          GITSHA_IMAGE_TAG: docker.pkg.github.com/agill17/s3-operator:${{github.sha}}
+          LATEST_IMAGE_TAG: docker.pkg.github.com/agill17/s3-operator:latest
         run: |
           docker login -u $GITHUB_ACTOR -p ${{secrets.GITHUB_TOKEN}} docker.pkg.github.com
           docker tag  $GITSHA_IMAGE_TAG $LATEST_IMAGE_TAG
