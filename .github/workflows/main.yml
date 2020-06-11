@@ -25,6 +25,8 @@ jobs:
     # Runs a single command using the runners shell
     - name: Operator-SDK Action
       uses: xUnholy/operator-sdk-github-action@v1.0.0
+      env:
+        RELEASE_VERSION: v0.15.2 
       with:
         # Image name
         image: agill17/s3-operator
