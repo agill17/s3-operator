@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 1
           path: s3-operator
 
-      - name: Operator-sdk build
+      - name: s3-operator build
         uses: dxas90/operator-sdk-github-action@v3
         id: operator-sdk
         env:
@@ -31,6 +31,8 @@ jobs:
           GITSHA_IMAGE_TAG: docker.pkg.github.com/${{github.repository}}/operator:${{github.sha}}
           LATEST_IMAGE_TAG: docker.pkg.github.com/${{github.repository}}/operator:latest
         run: |
+          version=$(cat ./s3-operator/version/version.go | grep Version | awk '{print $3}' | sed 's/"//g')
+          echo $version
           docker login -u $GITHUB_ACTOR -p ${{secrets.GITHUB_TOKEN}} docker.pkg.github.com
           docker tag  $GITSHA_IMAGE_TAG $LATEST_IMAGE_TAG
           docker push $GITSHA_IMAGE_TAG
