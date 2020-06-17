@@ -39,6 +39,7 @@ jobs:
           docker tag  $GITSHA_IMAGE_TAG $IMAGE_NAME_NO_TAG:$version
           docker push $GITSHA_IMAGE_TAG
           docker push $LATEST_IMAGE_TAG
+          docker push $IMAGE_NAME_NO_TAG:$version
 
 #       - name: Run chart-releaser
 #         uses: helm/chart-releaser-action@v1.0.0-rc.1
