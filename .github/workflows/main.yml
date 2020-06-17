@@ -28,6 +28,7 @@ jobs:
 
       - name: Publish docker image
         env:
+          IMAGE_NAME_NO_TAG: docker.pkg.github.com/${{github.repository}}/operator
           GITSHA_IMAGE_TAG: docker.pkg.github.com/${{github.repository}}/operator:${{github.sha}}
           LATEST_IMAGE_TAG: docker.pkg.github.com/${{github.repository}}/operator:latest
         run: |
@@ -35,6 +36,7 @@ jobs:
           echo $version
           docker login -u $GITHUB_ACTOR -p ${{secrets.GITHUB_TOKEN}} docker.pkg.github.com
           docker tag  $GITSHA_IMAGE_TAG $LATEST_IMAGE_TAG
+          docker tag  $GITSHA_IMAGE_TAG $IMAGE_NAME_NO_TAG:$version
           docker push $GITSHA_IMAGE_TAG
           docker push $LATEST_IMAGE_TAG
 
