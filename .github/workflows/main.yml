@@ -32,7 +32,7 @@ jobs:
           GITSHA_IMAGE_TAG: docker.pkg.github.com/${{github.repository}}/operator:${{github.sha}}
           LATEST_IMAGE_TAG: docker.pkg.github.com/${{github.repository}}/operator:latest
         run: |
-          version=$(cat ./s3-operator/version/version.go | grep Version | awk '{print $3}' | sed 's/"//g')
+          version=$(cat ./s3-operator/version/version.go | grep Version | awk -F "=" '{print $2}' | sed 's/"//g')
           echo $version
           docker login -u $GITHUB_ACTOR -p ${{secrets.GITHUB_TOKEN}} docker.pkg.github.com
           docker tag  $GITSHA_IMAGE_TAG $LATEST_IMAGE_TAG
