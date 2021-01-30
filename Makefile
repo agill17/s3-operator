@@ -15,16 +15,13 @@ all: manager
 
 # Run tests
 test: generate fmt vet manifests
-	go test ./... -coverprofile cover.out
-
-int-test: generate fmt vet manifests
-	## setup mock server
-	docker rm -f localstack || true
-	docker run --name localstack -d -p 4566:4566 --network=host localstack/localstack:0.12.5
-	sleep 30
+	## setup s3 mock server
+	docker-compose -f localstack-docker-compose.yml up -d
+	sleep 20
 	## run controller tests
-	S3_ENDPOINT=http://localhost:4566 KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true go test ./controllers/... -coverprofile cover.out
-#	docker rm -f localstack || true
+	S3_ENDPOINT=http://localhost:4566 KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true go test -v ./controllers/... -coverprofile cover.out
+	## bring down s3 mock server
+	docker-compose -f localstack-docker-compose.yml down
 
 # Build manager binary
 manager: generate fmt vet
@@ -65,7 +62,7 @@ generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 # Build the docker image
-docker-build: generate fmt vet manifests
+docker-build: test
 	docker build . -t ${IMG}
 	yq w -i s3-operator/Chart.yaml appVersion ${VERSION}
 

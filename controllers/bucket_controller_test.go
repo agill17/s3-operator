@@ -40,8 +40,6 @@ var _ = Describe("Successful e2e create and delete", func() {
 		}
 		namespacedName := fmt.Sprintf("%s/%s", cr.GetNamespace(), cr.GetName())
 
-
-
 		// create and verify in cluster and verify in AWS
 		When(fmt.Sprintf("%v: bucket cr is applied in cluster", namespacedName), func() {
 			It("Should set the cr status to created", func() {
@@ -78,7 +76,7 @@ var _ = Describe("Successful e2e create and delete", func() {
 				It("bucket versioning should be enabled in AWS", func() {
 					By("verifying versioning is enabled in AWS bucket", func() {
 
-						Eventually(func() bool{
+						Eventually(func() bool {
 							out, err := mockS3Client.GetBucketVersioning(&s3.GetBucketVersioningInput{
 								Bucket: aws.String(cr.Spec.BucketName),
 							})
@@ -94,17 +92,16 @@ var _ = Describe("Successful e2e create and delete", func() {
 			}
 		})
 
-
 		// delete and verify in cluster and verify in AWS
 		When(fmt.Sprintf("bucket %v cr is deleted from cluster", namespacedName), func() {
 			It("CR should no longer exists in cluster", func() {
 				Expect(k8sClient.Delete(context.TODO(), cr)).Should(Succeed())
 
 				By(fmt.Sprintf("verifying %v cr no longer exists in cluster", namespacedName), func() {
-					Eventually(func() bool{
+					Eventually(func() bool {
 						clusterCr := &v1alpha1.Bucket{}
 						err := k8sClient.Get(context.TODO(), types.NamespacedName{
-							Name: cr.GetName(),
+							Name:      cr.GetName(),
 							Namespace: cr.GetNamespace(),
 						}, clusterCr)
 						if err != nil {
@@ -114,7 +111,6 @@ var _ = Describe("Successful e2e create and delete", func() {
 						}
 						return false
 					}, 15*time.Second, 5*time.Second).Should(BeTrue())
-
 
 				})
 			})
@@ -138,9 +134,8 @@ var _ = Describe("Successful e2e create and delete", func() {
 	}
 })
 
-
 //TODO: add negative cases
 /**
 1. required field not passed in
 2. bad input ( failure on aws side )
- */
+*/

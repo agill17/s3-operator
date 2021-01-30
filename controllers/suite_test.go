@@ -51,6 +51,7 @@ var k8sClient client.Client
 var testEnv *envtest.Environment
 var testRuntimeScheme = runtime.NewScheme()
 var mockS3Client s3iface.S3API
+
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
@@ -84,9 +85,9 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(errCreatingNewMgr).NotTo(HaveOccurred())
 
 	err = (&BucketReconciler{
-		Scheme:   testRuntimeScheme,
-		Client:   testMgr.GetClient(),
-		Log:      controllerruntime.Log.WithName("test")}).
+		Scheme: testRuntimeScheme,
+		Client: testMgr.GetClient(),
+		Log:    controllerruntime.Log.WithName("test")}).
 		SetupWithManager(testMgr)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -106,10 +107,10 @@ var _ = BeforeSuite(func(done Done) {
 	cfg := &aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		MaxRetries:                    aws.Int(math.MaxInt64),
-		Region: aws.String("us-east-1"),
-		Endpoint: aws.String(os.Getenv(factory.EnvVarS3Endpoint)),
-		DisableSSL: aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(true),
+		Region:                        aws.String("us-east-1"),
+		Endpoint:                      aws.String(os.Getenv(factory.EnvVarS3Endpoint)),
+		DisableSSL:                    aws.Bool(true),
+		S3ForcePathStyle:              aws.Bool(true),
 	}
 
 	sess := session.Must(session.NewSession())
