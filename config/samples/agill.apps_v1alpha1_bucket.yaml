@@ -1,0 +1,7 @@
+apiVersion: agill.apps.agill.apps.s3-operator/v1alpha1
+kind: Bucket
+metadata:
+  name: bucket-sample
+spec:
+  # Add fields here
+  foo: bar

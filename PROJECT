@@ -1,0 +1,7 @@
+domain: agill.apps.s3-operator
+repo: agill.apps.s3-operator
+resources:
+- group: agill.apps
+  kind: Bucket
+  version: v1alpha1
+version: "2"
