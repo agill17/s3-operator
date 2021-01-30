@@ -1,0 +1,8 @@
+apiVersion: agill.apps.agill.apps.s3-operator/v1alpha1
+kind: Bucket
+metadata:
+  name: another-valid-s3
+  namespace: default
+spec:
+  region: "us-east-1"
+  bucketName: another-valid-s3

@@ -11,8 +11,8 @@ import (
 type FinalizerAction string
 
 const (
-	Add    FinalizerAction = "add"
-	Remove FinalizerAction = "remove"
+	add    FinalizerAction = "add"
+	remove FinalizerAction = "remove"
 )
 
 func SliceContainsString(slice []string, lookupString string) (bool, int) {
@@ -38,13 +38,14 @@ func FinalizerOp(obj runtime.Object, client client.Client, action FinalizerActio
 	currentFinalizers := meta.GetFinalizers()
 	exists, idx := SliceContainsString(currentFinalizers, finalizer)
 	switch action {
-	case Add:
+	case add:
 		if !exists {
 			currentFinalizers = append(currentFinalizers, finalizer)
+			meta.SetFinalizers(currentFinalizers)
 			return client.Update(context.TODO(), obj)
 		}
 		break
-	case Remove:
+	case remove:
 		if exists {
 			currentFinalizers = append(currentFinalizers[:idx], currentFinalizers[idx+1:]...)
 			meta.SetFinalizers(currentFinalizers)

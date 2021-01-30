@@ -21,7 +21,9 @@ import (
 	"fmt"
 	"github.com/agill17/s3-operator/controllers/factory"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -51,10 +53,7 @@ func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	namespacedName := fmt.Sprintf("%s/%s", req.Namespace, req.Name)
 	cr := &agillappsv1alpha1.Bucket{}
-	err := r.Client.Get(context.TODO(), types.NamespacedName{
-		Namespace: req.Namespace,
-		Name:      req.Name,
-	}, cr)
+	err := r.Client.Get(context.TODO(), req.NamespacedName, cr)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return ctrl.Result{}, nil
@@ -64,7 +63,7 @@ func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	// add finalizer
-	if err := FinalizerOp(cr, r.Client, Add, Finalizer); err != nil {
+	if err := FinalizerOp(cr, r.Client, add, Finalizer); err != nil {
 		r.Log.Error(err, fmt.Sprintf("%s: Failed to add finalizer to CR", err))
 		return ctrl.Result{}, err
 	}
@@ -73,12 +72,13 @@ func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	// Handle Delete
 	if cr.GetDeletionTimestamp() != nil {
+		r.Log.Info(fmt.Sprintf("%v: deleting bucket", namespacedName))
 		if errDeleting := bucketInterface.DeleteBucket(cr.DeleteBucketIn()); errDeleting != nil {
 			r.Log.Error(errDeleting, fmt.Sprintf("%s: Failed to delete bucket", errDeleting))
 			return ctrl.Result{}, errDeleting
 		}
 
-		if errRemovingFinalizer := FinalizerOp(cr, r.Client, Remove, Finalizer); errRemovingFinalizer != nil {
+		if errRemovingFinalizer := FinalizerOp(cr, r.Client, remove, Finalizer); errRemovingFinalizer != nil {
 			r.Log.Error(errRemovingFinalizer, fmt.Sprintf("%s: Failed to remove finalizer", errRemovingFinalizer))
 		}
 		return ctrl.Result{}, nil
@@ -91,11 +91,22 @@ func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	if !bucketExists {
+		r.Log.Info(fmt.Sprintf("%v: creating bucket", namespacedName))
 		if errCreatingBucket := bucketInterface.CreateBucket(cr.CreateBucketIn()); errCreatingBucket != nil {
 			r.Log.Error(errCreatingBucket, fmt.Sprintf("%s: Failed to create s3 bucket", errCreatingBucket))
 			return ctrl.Result{}, errCreatingBucket
 		}
 	}
+
+	if !cr.Status.Ready {
+		cr.Status.Ready = true
+		if err := r.Client.Status().Update(context.TODO(), cr); err != nil {
+			r.Log.Error(err, "Failed to update bucket status")
+			return ctrl.Result{}, err
+		}
+	}
+
+	r.Log.Info(fmt.Sprintf("%v: Bucket reconciled", namespacedName))
 
 	return ctrl.Result{}, nil
 }
@@ -103,5 +114,11 @@ func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 func (r *BucketReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&agillappsv1alpha1.Bucket{}).
+		WithEventFilter(predicate.Funcs{
+			UpdateFunc: func(e event.UpdateEvent) bool {
+				return e.MetaOld.GetGeneration() != e.MetaNew.GetGeneration()
+			},
+		}).
+		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).
 		Complete(r)
 }

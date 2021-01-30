@@ -29,6 +29,7 @@ func NewS3(region string) *awsClient {
 	if val, ok := os.LookupEnv(EnvVarS3Endpoint); ok {
 		cfg.Endpoint = aws.String(val)
 		cfg.DisableSSL = aws.Bool(true)
+		cfg.S3ForcePathStyle = aws.Bool(true)
 	}
 
 	sess := session.Must(session.NewSession())

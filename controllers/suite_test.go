@@ -17,7 +17,16 @@ limitations under the License.
 package controllers
 
 import (
+	"github.com/agill17/s3-operator/controllers/factory"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3iface"
+	"k8s.io/apimachinery/pkg/runtime"
+	"math"
+	"os"
 	"path/filepath"
+	controllerruntime "sigs.k8s.io/controller-runtime"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -40,7 +49,8 @@ import (
 var cfg *rest.Config
 var k8sClient client.Client
 var testEnv *envtest.Environment
-
+var testRuntimeScheme = runtime.NewScheme()
+var mockS3Client s3iface.S3API
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 
@@ -62,14 +72,48 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
 
-	err = agillappsv1alpha1.AddToScheme(scheme.Scheme)
+	err = agillappsv1alpha1.AddToScheme(testRuntimeScheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = scheme.AddToScheme(testRuntimeScheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	testMgr, errCreatingNewMgr := controllerruntime.NewManager(cfg, controllerruntime.Options{
+		Scheme: testRuntimeScheme,
+	})
+	Expect(errCreatingNewMgr).NotTo(HaveOccurred())
+
+	err = (&BucketReconciler{
+		Scheme:   testRuntimeScheme,
+		Client:   testMgr.GetClient(),
+		Log:      controllerruntime.Log.WithName("test")}).
+		SetupWithManager(testMgr)
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme
 
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
-	Expect(err).ToNot(HaveOccurred())
+	k8sClient = testMgr.GetClient()
 	Expect(k8sClient).ToNot(BeNil())
+
+	// ensure env var for mock s3 server is set
+	Expect(os.Getenv(factory.EnvVarS3Endpoint)).ToNot(BeEmpty())
+
+	go func() {
+		err = testMgr.Start(controllerruntime.SetupSignalHandler())
+		Expect(err).ToNot(HaveOccurred())
+	}()
+
+	cfg := &aws.Config{
+		CredentialsChainVerboseErrors: aws.Bool(true),
+		MaxRetries:                    aws.Int(math.MaxInt64),
+		Region: aws.String("us-east-1"),
+		Endpoint: aws.String(os.Getenv(factory.EnvVarS3Endpoint)),
+		DisableSSL: aws.Bool(true),
+		S3ForcePathStyle: aws.Bool(true),
+	}
+
+	sess := session.Must(session.NewSession())
+	mockS3Client = s3.New(sess, cfg)
 
 	close(done)
 }, 60)

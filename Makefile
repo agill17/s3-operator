@@ -17,6 +17,15 @@ all: manager
 test: generate fmt vet manifests
 	go test ./... -coverprofile cover.out
 
+int-test: generate fmt vet manifests
+	## setup mock server
+	docker rm -f localstack || true
+	docker run --name localstack -d -p 4566:4566 --network=host localstack/localstack:0.12.5
+	sleep 30
+	## run controller tests
+	S3_ENDPOINT=http://localhost:4566 KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true go test ./controllers/... -coverprofile cover.out
+#	docker rm -f localstack || true
+
 # Build manager binary
 manager: generate fmt vet
 	go build -o bin/manager main.go
@@ -41,6 +50,7 @@ deploy: manifests
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	rsync config/crd/bases/agill.apps.agill.apps.s3-operator_buckets.yaml s3-operator/crds
 
 # Run go fmt against code
 fmt:
@@ -55,8 +65,9 @@ generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 # Build the docker image
-docker-build: test
+docker-build: generate fmt vet manifests
 	docker build . -t ${IMG}
+	yq w -i s3-operator/Chart.yaml appVersion ${VERSION}
 
 # Push the docker image
 docker-push:
@@ -78,3 +89,7 @@ CONTROLLER_GEN=$(GOBIN)/controller-gen
 else
 CONTROLLER_GEN=$(shell which controller-gen)
 endif
+
+
+deploy-chart:
+	helm upgrade -i s3-operator ./s3-operator

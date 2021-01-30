@@ -34,12 +34,16 @@ type BucketSpec struct {
 
 // BucketStatus defines the observed state of Bucket
 type BucketStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	Ready bool `json:"ready"`
 }
 
 // +kubebuilder:object:root=true
-
+// +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
+// Bucket is the Schema for the buckets API
+// +kubebuilder:printcolumn:name="bucket",type=string,JSONPath=`.spec.bucketName`
+// +kubebuilder:printcolumn:name="ready",type=string,JSONPath=`.status.ready`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 // Bucket is the Schema for the buckets API
 type Bucket struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -65,9 +69,12 @@ func init() {
 func (b *Bucket) CreateBucketIn() *s3.CreateBucketInput {
 	in := &s3.CreateBucketInput{
 		Bucket:                     aws.String(b.Spec.BucketName),
-		CreateBucketConfiguration:  &s3.CreateBucketConfiguration{LocationConstraint: aws.String(b.Spec.Region)},
 		ObjectLockEnabledForBucket: aws.Bool(b.Spec.EnableObjectLock),
 	}
+	if b.Spec.Region != "us-east-1" {
+		in.CreateBucketConfiguration = &s3.CreateBucketConfiguration{LocationConstraint: aws.String(b.Spec.Region)}
+	}
+
 	return in
 }
 
