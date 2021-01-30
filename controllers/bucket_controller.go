@@ -19,7 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/agill17/s3-operator/pkg/factory"
+	"github.com/agill17/s3-operator/controllers/factory"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 
