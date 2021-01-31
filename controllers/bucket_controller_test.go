@@ -18,8 +18,6 @@ import (
 )
 
 const validTestDataFiles = "./test-data/valid"
-const enabledStatus = "Enabled"
-const disabledStatus = "Suspended"
 
 var _ = Describe("Successful e2e create and delete", func() {
 
@@ -82,11 +80,11 @@ var _ = Describe("Successful e2e create and delete", func() {
 					checkBucketVersioning(cr)
 				})
 			})
-			//It("should match transfer acceleration configuration in AWS", func() {
-			//	By("verifying bucket transfer acceleration in AWS", func() {
-			//		checkBucketTransferAccel(cr)
-			//	})
-			//})
+			It("should match transfer acceleration configuration in AWS", func() {
+				By("verifying bucket transfer acceleration in AWS", func() {
+					checkBucketTransferAccel(cr)
+				})
+			})
 		})
 
 		// delete and verify in cluster and verify in AWS
@@ -148,12 +146,14 @@ func checkBucketTransferAccel(cr *v1alpha1.Bucket) {
 	accelOut, err := mockS3Client.GetBucketAccelerateConfiguration(&s3.GetBucketAccelerateConfigurationInput{
 		Bucket: aws.String(cr.Spec.BucketName)})
 	Expect(err).To(BeNil())
-	Expect(accelOut.Status).ToNot(BeNil())
 
-	expectedStatus := s3.BucketAccelerateStatusSuspended
-	if cr.Spec.EnableTransferAcceleration {
-		expectedStatus = s3.BucketAccelerateStatusEnabled
+	if !cr.Spec.EnableTransferAcceleration {
+		Expect(accelOut.Status).To(BeNil())
+		return
 	}
+	
+	Expect(accelOut.Status).ToNot(BeNil())
+	expectedStatus := s3.BucketAccelerateStatusEnabled
 	actualStatus := *accelOut.Status
 	Expect(actualStatus).To(BeIdenticalTo(expectedStatus))
 
