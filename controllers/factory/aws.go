@@ -2,6 +2,7 @@ package factory
 
 import (
 	"context"
+	"github.com/agill17/s3-operator/api/v1alpha1"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -76,7 +77,23 @@ func (a *awsClient) DeleteBucket(input *s3.DeleteBucketInput) error {
 	return nil
 }
 
-func (a *awsClient) PutBucketPolicy(input *s3.PutBucketPolicyInput) error {
-	_, err := a.s3Client.PutBucketPolicy(input)
-	return err
+func (a *awsClient) ApplyBucketProperties(cr *v1alpha1.Bucket) error {
+
+	if _, errApplyingVersioning := a.s3Client.PutBucketVersioning(cr.PutBucketVersioningIn()); errApplyingVersioning != nil {
+		return errApplyingVersioning
+	}
+
+	if _, errApplyingTACL := a.s3Client.PutBucketAccelerateConfiguration(cr.BucketAccelerationConfigIn()); errApplyingTACL != nil {
+		return errApplyingTACL
+	}
+
+	policyIn := cr.BucketPolicyInput()
+	if errFailedValidation := policyIn.Validate(); errFailedValidation != nil {
+		return errFailedValidation
+	}
+	if _, err := a.s3Client.PutBucketPolicy(policyIn); err != nil {
+		return err
+	}
+
+	return nil
 }

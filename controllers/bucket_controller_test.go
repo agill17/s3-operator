@@ -18,6 +18,8 @@ import (
 )
 
 const validTestDataFiles = "./test-data/valid"
+const enabledStatus = "Enabled"
+const disabledStatus = "Suspended"
 
 var _ = Describe("Successful e2e create and delete", func() {
 
@@ -28,6 +30,7 @@ var _ = Describe("Successful e2e create and delete", func() {
 	}
 
 	for _, test := range tests {
+
 		rawTestData, errReading := ioutil.ReadFile(filepath.Join(validTestDataFiles, test.Name()))
 		if errReading != nil {
 			Fail("Failed to read valid test file")
@@ -42,7 +45,7 @@ var _ = Describe("Successful e2e create and delete", func() {
 
 		// create and verify in cluster and verify in AWS
 		When(fmt.Sprintf("%v: bucket cr is applied in cluster", namespacedName), func() {
-			It("Should set the cr status to created", func() {
+			It("Gets created and reconciled successfully", func() {
 				Expect(k8sClient.Create(context.TODO(), cr)).Should(Succeed())
 				bucketCrFromCluster := &v1alpha1.Bucket{}
 				By(fmt.Sprintf("Verifying that %v CR exists and status is created", namespacedName), func() {
@@ -59,10 +62,11 @@ var _ = Describe("Successful e2e create and delete", func() {
 					}, 30*time.Second, 2*time.Second).Should(BeTrue())
 				})
 			})
+		})
 
-			It(fmt.Sprintf("%v: bucket should exist in AWS", namespacedName), func() {
+		When(fmt.Sprintf("bucket %v is created successfully in cluster", namespacedName), func() {
+			It("should exist in AWS", func() {
 				By(fmt.Sprintf("Verifying that %v bucket is created in AWS", namespacedName), func() {
-
 					Eventually(func() error {
 						_, err := mockS3Client.GetBucketLocation(&s3.GetBucketLocationInput{Bucket: aws.String(cr.Spec.BucketName)})
 						return err
@@ -70,26 +74,19 @@ var _ = Describe("Successful e2e create and delete", func() {
 
 				})
 			})
+		})
 
-			// TODO: not yet implemented in controller
-			if cr.Spec.EnableVersioning {
-				It("bucket versioning should be enabled in AWS", func() {
-					By("verifying versioning is enabled in AWS bucket", func() {
-
-						Eventually(func() bool {
-							out, err := mockS3Client.GetBucketVersioning(&s3.GetBucketVersioningInput{
-								Bucket: aws.String(cr.Spec.BucketName),
-							})
-							if err != nil {
-								return false
-							}
-							return aws.StringValue(out.Status) == "true"
-
-						}).Should(BeTrue())
-
-					})
+		When(fmt.Sprintf("bucket %v is created successfully in AWS", namespacedName), func() {
+			It("should match versioning configuration in AWS", func() {
+				By("verifying bucket versioning in AWS", func() {
+					checkBucketVersioning(cr)
 				})
-			}
+			})
+			//It("should match transfer acceleration configuration in AWS", func() {
+			//	By("verifying bucket transfer acceleration in AWS", func() {
+			//		checkBucketTransferAccel(cr)
+			//	})
+			//})
 		})
 
 		// delete and verify in cluster and verify in AWS
@@ -114,10 +111,11 @@ var _ = Describe("Successful e2e create and delete", func() {
 
 				})
 			})
+		})
 
+		When("Bucket CR is deleted from cluster", func() {
 			It(fmt.Sprintf("bucket %v should no longer exist in AWS", namespacedName), func() {
 				By(fmt.Sprintf("verifing %v bucket does not exist in AWS", namespacedName), func() {
-
 					Eventually(func() bool {
 						_, err := mockS3Client.GetBucketLocation(&s3.GetBucketLocationInput{Bucket: aws.String(cr.Spec.BucketName)})
 						if err != nil {
@@ -126,13 +124,40 @@ var _ = Describe("Successful e2e create and delete", func() {
 							}
 						}
 						return false
-					}, 10*time.Second, 2*time.Second).Should(BeTrue())
-
+					}, 5*time.Second, 2*time.Second).Should(BeTrue())
 				})
 			})
 		})
 	}
 })
+
+func checkBucketVersioning(cr *v1alpha1.Bucket) {
+	out, err := mockS3Client.GetBucketVersioning(&s3.GetBucketVersioningInput{Bucket: aws.String(cr.Spec.BucketName)})
+	Expect(err).To(BeNil())
+	Expect(out.Status).ToNot(BeNil())
+	expectedStatus := s3.BucketVersioningStatusSuspended
+	if cr.Spec.EnableVersioning {
+		expectedStatus = s3.BucketVersioningStatusEnabled
+	}
+	actualStatus := *out.Status
+	Expect(actualStatus).To(BeIdenticalTo(expectedStatus))
+
+}
+
+func checkBucketTransferAccel(cr *v1alpha1.Bucket) {
+	accelOut, err := mockS3Client.GetBucketAccelerateConfiguration(&s3.GetBucketAccelerateConfigurationInput{
+		Bucket: aws.String(cr.Spec.BucketName)})
+	Expect(err).To(BeNil())
+	Expect(accelOut.Status).ToNot(BeNil())
+
+	expectedStatus := s3.BucketAccelerateStatusSuspended
+	if cr.Spec.EnableTransferAcceleration {
+		expectedStatus = s3.BucketAccelerateStatusEnabled
+	}
+	actualStatus := *accelOut.Status
+	Expect(actualStatus).To(BeIdenticalTo(expectedStatus))
+
+}
 
 //TODO: add negative cases
 /**

@@ -17,8 +17,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -30,6 +28,10 @@ type BucketSpec struct {
 	EnableVersioning bool `json:"enableVersioning,omitempty"`
 	// +optional
 	EnableObjectLock bool `json:"enableObjectLock,omitempty"`
+	// +optional
+	EnableTransferAcceleration bool `json:"enableTransferAcceleration,omitempty"`
+	// +optional
+	BucketPolicy string `json:"bucketPolicy,omitempty"`
 }
 
 // BucketStatus defines the observed state of Bucket
@@ -64,22 +66,4 @@ type BucketList struct {
 
 func init() {
 	SchemeBuilder.Register(&Bucket{}, &BucketList{})
-}
-
-func (b *Bucket) CreateBucketIn() *s3.CreateBucketInput {
-	in := &s3.CreateBucketInput{
-		Bucket:                     aws.String(b.Spec.BucketName),
-		ObjectLockEnabledForBucket: aws.Bool(b.Spec.EnableObjectLock),
-	}
-	if b.Spec.Region != "us-east-1" {
-		in.CreateBucketConfiguration = &s3.CreateBucketConfiguration{LocationConstraint: aws.String(b.Spec.Region)}
-	}
-
-	return in
-}
-
-func (b *Bucket) DeleteBucketIn() *s3.DeleteBucketInput {
-	return &s3.DeleteBucketInput{
-		Bucket: aws.String(b.Spec.BucketName),
-	}
 }

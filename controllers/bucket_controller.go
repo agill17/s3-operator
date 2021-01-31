@@ -98,6 +98,11 @@ func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
+	if errApplyingBucketProperties := bucketInterface.ApplyBucketProperties(cr); errApplyingBucketProperties != nil {
+		r.Log.Error(errApplyingBucketProperties, fmt.Sprintf("Failed to apply bucket properties"))
+		return ctrl.Result{}, errApplyingBucketProperties
+	}
+
 	if !cr.Status.Ready {
 		cr.Status.Ready = true
 		if err := r.Client.Status().Update(context.TODO(), cr); err != nil {

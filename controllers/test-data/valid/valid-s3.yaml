@@ -6,3 +6,4 @@ metadata:
 spec:
   region: "us-east-1"
   bucketName: valid-s3
+  enableVersioning: true

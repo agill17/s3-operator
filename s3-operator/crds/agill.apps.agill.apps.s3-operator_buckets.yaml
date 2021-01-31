@@ -44,7 +44,11 @@ spec:
             properties:
               bucketName:
                 type: string
+              bucketPolicy:
+                type: string
               enableObjectLock:
+                type: boolean
+              enableTransferAcceleration:
                 type: boolean
               enableVersioning:
                 type: boolean

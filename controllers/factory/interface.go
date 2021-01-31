@@ -1,6 +1,9 @@
 package factory
 
-import "github.com/aws/aws-sdk-go/service/s3"
+import (
+	"github.com/agill17/s3-operator/api/v1alpha1"
+	"github.com/aws/aws-sdk-go/service/s3"
+)
 
 /**
 TODO: Create a a generic type for taking inputs needed for create,delete
@@ -10,7 +13,7 @@ type Bucket interface {
 	BucketExists(name string) (bool, error)
 	CreateBucket(input *s3.CreateBucketInput) error
 	DeleteBucket(input *s3.DeleteBucketInput) error
-	PutBucketPolicy(input *s3.PutBucketPolicyInput) error
+	ApplyBucketProperties(cr *v1alpha1.Bucket) error
 }
 
 // TODO: extend to other providers

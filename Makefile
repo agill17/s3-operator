@@ -17,7 +17,7 @@ all: manager
 test: generate fmt vet manifests
 	## setup s3 mock server
 	docker-compose -f localstack-docker-compose.yml up -d
-	sleep 20
+	sleep 30
 	## run controller tests
 	S3_ENDPOINT=http://localhost:4566 KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true go test -v ./controllers/... -coverprofile cover.out
 	## bring down s3 mock server
