@@ -95,5 +95,29 @@ func (a *awsClient) ApplyBucketProperties(cr *v1alpha1.Bucket) error {
 		return err
 	}
 
+	if _, err := a.s3Client.PutBucketTagging(cr.PutTagsIn(MapToTagging(cr.Spec.Tags))); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func MapToTagging(m map[string]string) *s3.Tagging {
+	t := &s3.Tagging{TagSet: []*s3.Tag{}}
+	for k, v := range m {
+		t.TagSet = append(t.TagSet, &s3.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		})
+	}
+	return t
+}
+
+func TSetToMap(tSet []*s3.Tag) map[string]string {
+	m := map[string]string{}
+	for _, ele := range tSet {
+		m[*ele.Key] = *ele.Value
+	}
+	return m
+
 }

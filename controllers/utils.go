@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	meta2 "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -53,8 +52,4 @@ func FinalizerOp(obj runtime.Object, client client.Client, action FinalizerActio
 		}
 	}
 	return nil
-}
-
-func FmtString(msg string) string {
-	return fmt.Sprintf(msg)
 }

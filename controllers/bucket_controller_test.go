@@ -4,14 +4,17 @@ import (
 	"context"
 	"fmt"
 	"github.com/agill17/s3-operator/api/v1alpha1"
+	"github.com/agill17/s3-operator/controllers/factory"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"path/filepath"
 	"time"
@@ -21,7 +24,7 @@ const validTestDataFiles = "./test-data/valid"
 
 var _ = Describe("Successful e2e create and delete", func() {
 
-	// test-data prep
+	// TODO: convert these to test form like data instead of files
 	tests, errReadingDir := ioutil.ReadDir(validTestDataFiles)
 	if errReadingDir != nil {
 		Fail("Failed to read valid test dir")
@@ -85,6 +88,11 @@ var _ = Describe("Successful e2e create and delete", func() {
 					checkBucketTransferAccel(cr)
 				})
 			})
+			It("should match tags configuration in AWS", func() {
+				By("verifying bucket tags in AWS", func() {
+					checkTags(cr)
+				})
+			})
 		})
 
 		// delete and verify in cluster and verify in AWS
@@ -139,8 +147,73 @@ func checkBucketVersioning(cr *v1alpha1.Bucket) {
 	}
 	actualStatus := *out.Status
 	Expect(actualStatus).To(BeIdenticalTo(expectedStatus))
-
 }
+
+//TODO: add negative cases
+/**
+1. required field not passed in
+2. bad input ( failure on aws side )
+*/
+
+var _ = Describe("Negative tests", func() {
+	When("A required input is not provided", func() {
+		testCrs := []*v1alpha1.Bucket{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "default",
+					Name:      "missing-region",
+				},
+				Spec: v1alpha1.BucketSpec{
+					BucketName: "missing-region",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "default",
+					Name:      "missing-bucketName",
+				},
+				Spec: v1alpha1.BucketSpec{
+					Region: "us-east-1",
+				},
+			},
+		}
+		for _, test := range testCrs {
+			It("Should error out when creating CR", func() {
+				Expect(k8sClient.Create(context.TODO(), test)).ShouldNot(Succeed())
+			})
+			It("Should not exist in cluster", func() {
+				crFromCluster := &v1alpha1.Bucket{}
+				Expect(k8sClient.Get(context.TODO(), types.NamespacedName{
+					Name:      test.GetName(),
+					Namespace: test.GetNamespace(),
+				}, crFromCluster)).ShouldNot(Succeed())
+			})
+			It("Should not exist in AWS", func() {
+				_, err := mockS3Client.GetBucketLocation(&s3.GetBucketLocationInput{Bucket: aws.String(test.Spec.BucketName)})
+				if err != nil {
+					if awsErr, isAwsErr := err.(awserr.Error); isAwsErr {
+						Expect(awsErr.Code()).To(BeIdenticalTo(request.InvalidParameterErrCode))
+					}
+				}
+			})
+		}
+	})
+
+	When("A invalid aws input is provider", func() {
+		It("Should not error out when creating CR", func() {
+
+		})
+		It("Should exist in cluster", func() {
+
+		})
+		It("Should not be marked created", func() {
+
+		})
+		It("Should not exist in AWS", func() {
+
+		})
+	})
+})
 
 func checkBucketTransferAccel(cr *v1alpha1.Bucket) {
 	accelOut, err := mockS3Client.GetBucketAccelerateConfiguration(&s3.GetBucketAccelerateConfigurationInput{
@@ -151,16 +224,23 @@ func checkBucketTransferAccel(cr *v1alpha1.Bucket) {
 		Expect(accelOut.Status).To(BeNil())
 		return
 	}
-	
+
 	Expect(accelOut.Status).ToNot(BeNil())
 	expectedStatus := s3.BucketAccelerateStatusEnabled
 	actualStatus := *accelOut.Status
 	Expect(actualStatus).To(BeIdenticalTo(expectedStatus))
-
 }
 
-//TODO: add negative cases
-/**
-1. required field not passed in
-2. bad input ( failure on aws side )
-*/
+func checkTags(cr *v1alpha1.Bucket) {
+	out, err := mockS3Client.GetBucketTagging(&s3.GetBucketTaggingInput{
+		Bucket: aws.String(cr.Spec.BucketName),
+	})
+	if len(cr.Spec.Tags) == 0 {
+		Expect(err).ToNot(BeNil())
+		return
+	}
+
+	expectedMap := cr.Spec.Tags
+	actualMap := factory.TSetToMap(out.TagSet)
+	Expect(expectedMap).To(BeEquivalentTo(actualMap))
+}

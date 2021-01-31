@@ -32,6 +32,8 @@ type BucketSpec struct {
 	EnableTransferAcceleration bool `json:"enableTransferAcceleration,omitempty"`
 	// +optional
 	BucketPolicy string `json:"bucketPolicy,omitempty"`
+	// +optional
+	Tags map[string]string `json:"tags,omitempty"`
 }
 
 // BucketStatus defines the observed state of Bucket

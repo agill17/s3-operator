@@ -55,3 +55,11 @@ func (b *Bucket) BucketPolicyInput() *s3.PutBucketPolicyInput {
 	}
 	return in
 }
+
+func (b *Bucket) PutTagsIn(tags *s3.Tagging) *s3.PutBucketTaggingInput {
+
+	return &s3.PutBucketTaggingInput{
+		Bucket:  aws.String(b.Spec.BucketName),
+		Tagging: tags,
+	}
+}
