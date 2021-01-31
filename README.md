@@ -1,7 +1,7 @@
 # S3 Operator
 
 ### Current status
-Moving to kubebuilder. Refactor work can be found [here](https://github.com/agill17/s3-operator/tree/refactor).
+Moving to kubebuilder. Refactor work can be found [here](https://github.com/agill17/s3-operator/tree/master).
 
 ### Overview
 A kubernetes operator to create and manage AWS S3 buckets from single control plane. The operator needs AWS access credentials
