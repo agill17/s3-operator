@@ -99,7 +99,6 @@ func (a *awsClient) ApplyBucketProperties(cr *v1alpha1.Bucket) error {
 		return err
 	}
 
-
 	if _, err := a.s3Client.PutBucketTagging(cr.PutTagsIn(MapToTagging(cr.Spec.Tags))); err != nil {
 		return err
 	}

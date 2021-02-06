@@ -31,7 +31,6 @@ var _ = Describe("Successful e2e create and delete", func() {
 		Fail("Failed to read valid test dir")
 	}
 
-
 	for _, test := range tests {
 
 		rawTestData, errReading := ioutil.ReadFile(filepath.Join(validTestDataFiles, test.Name()))
@@ -144,7 +143,6 @@ var _ = Describe("Successful e2e create and delete", func() {
 				})
 			})
 		})
-		
 
 	}
 })
