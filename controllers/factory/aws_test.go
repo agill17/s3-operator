@@ -20,17 +20,17 @@ func TestMapToTagging(t *testing.T) {
 			name: "valid map",
 			args: args{
 				m: map[string]string{
-					"Name": "test-bucket",
+					"Name":   "test-bucket",
 					"author": "s3-operator",
 				},
 			},
 			want: &s3.Tagging{TagSet: []*s3.Tag{
 				{
-					Key: aws.String("Name"),
+					Key:   aws.String("Name"),
 					Value: aws.String("test-bucket"),
 				},
 				{
-					Key: aws.String("author"),
+					Key:   aws.String("author"),
 					Value: aws.String("s3-operator"),
 				},
 			}},
@@ -73,12 +73,12 @@ func TestTSetToMap(t *testing.T) {
 			args: args{
 				tSet: []*s3.Tag{
 					{
-						Key: aws.String("testKey"),
+						Key:   aws.String("testKey"),
 						Value: aws.String("testValue"),
 					},
 				},
 			},
-			want: map[string]string{"testKey":"testValue"},
+			want: map[string]string{"testKey": "testValue"},
 		},
 		{
 			name: "empty tag set to map",
