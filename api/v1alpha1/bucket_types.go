@@ -33,6 +33,15 @@ type BucketSpec struct {
 	// +optional
 	BucketPolicy string `json:"bucketPolicy,omitempty"`
 	// +optional
+	/**
+	Amazon S3 supports a set of predefined grants, known as canned ACLs.
+	Each canned ACL has a predefined set of grantees and permissions.
+	The following link ( https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#specifying-grantee )
+	lists the set of canned ACLs and the associated predefined grants.
+	*/
+	// +kubebuilder:validation:Enum=private;public-read;public-read-write;aws-exec-read;authenticated-read;bucket-owner-read;bucket-owner-full-control;log-delivery-write
+	CannedBucketAcl string `json:"cannedBucketAcl,omitempty"`
+	// +optional
 	Tags map[string]string `json:"tags,omitempty"`
 }
 
@@ -48,6 +57,7 @@ type BucketStatus struct {
 // +kubebuilder:printcolumn:name="bucket",type=string,JSONPath=`.spec.bucketName`
 // +kubebuilder:printcolumn:name="ready",type=string,JSONPath=`.status.ready`
 // +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
+// +kubebuilder:printcolumn:name="ACL",type=string,JSONPath=`.spec.cannedBucketAcl`
 // Bucket is the Schema for the buckets API
 type Bucket struct {
 	metav1.TypeMeta   `json:",inline"`

@@ -7,3 +7,4 @@ spec:
   region: "us-east-1"
   bucketName: valid-s3
   enableTransferAcceleration: true
+  cannedBucketAcl: "authenticated-read"

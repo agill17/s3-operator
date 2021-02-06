@@ -8,6 +8,7 @@ spec:
   bucketName: everything
   enableVersioning: true
   enableTransferAcceleration: true
+  cannedBucketAcl: "log-delivery-write"
   tags:
     foo: bar
     hello: world

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/agill17/s3-operator/api/v1alpha1"
 	"github.com/agill17/s3-operator/controllers/factory"
+	test_data "github.com/agill17/s3-operator/controllers/test-data"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -30,6 +31,7 @@ var _ = Describe("Successful e2e create and delete", func() {
 		Fail("Failed to read valid test dir")
 	}
 
+
 	for _, test := range tests {
 
 		rawTestData, errReading := ioutil.ReadFile(filepath.Join(validTestDataFiles, test.Name()))
@@ -47,7 +49,8 @@ var _ = Describe("Successful e2e create and delete", func() {
 		// create and verify in cluster and verify in AWS
 		When(fmt.Sprintf("%v: bucket cr is applied in cluster", namespacedName), func() {
 			It("Gets created and reconciled successfully", func() {
-				Expect(k8sClient.Create(context.TODO(), cr)).Should(Succeed())
+				errCreating := k8sClient.Create(context.TODO(), cr)
+				Expect(errCreating).To(BeNil())
 				bucketCrFromCluster := &v1alpha1.Bucket{}
 				By(fmt.Sprintf("Verifying that %v CR exists and status is created", namespacedName), func() {
 
@@ -93,6 +96,13 @@ var _ = Describe("Successful e2e create and delete", func() {
 					checkTags(cr)
 				})
 			})
+
+			It("should match the canned ACL in AWS", func() {
+				By("verifying the canned acl configuration in AWS", func() {
+					checkCannedAcl(cr)
+				})
+			})
+
 		})
 
 		// delete and verify in cluster and verify in AWS
@@ -134,6 +144,8 @@ var _ = Describe("Successful e2e create and delete", func() {
 				})
 			})
 		})
+		
+
 	}
 })
 
@@ -149,11 +161,22 @@ func checkBucketVersioning(cr *v1alpha1.Bucket) {
 	Expect(actualStatus).To(BeIdenticalTo(expectedStatus))
 }
 
-//TODO: add negative cases
-/**
-1. required field not passed in
-2. bad input ( failure on aws side )
-*/
+func checkCannedAcl(cr *v1alpha1.Bucket) {
+	out, err := mockS3Client.GetBucketAcl(&s3.GetBucketAclInput{Bucket: aws.String(cr.Spec.BucketName)})
+	Expect(err).To(BeNil())
+	if cr.Spec.CannedBucketAcl != "" {
+		expectedResp, foundInTestData := test_data.ExpectedRespBasedOnCannedAclType[cr.Spec.CannedBucketAcl]
+		if !foundInTestData {
+			fmt.Printf("************\nWARN: Expected test data for canned "+
+				"acl type: %v not found in test_data.ExpectedRespBasedOnCannedAclType"+
+				"\n******************\n", cr.Spec.CannedBucketAcl)
+			return
+		}
+		expectedRespGetBucketAclObj, _ := expectedResp.(*s3.GetBucketAclOutput)
+		Expect(*out).To(BeEquivalentTo(*expectedRespGetBucketAclObj))
+
+	}
+}
 
 var _ = Describe("Negative tests", func() {
 	When("A required input is not provided", func() {
@@ -199,20 +222,6 @@ var _ = Describe("Negative tests", func() {
 		}
 	})
 
-	When("A invalid aws input is provider", func() {
-		It("Should not error out when creating CR", func() {
-
-		})
-		It("Should exist in cluster", func() {
-
-		})
-		It("Should not be marked created", func() {
-
-		})
-		It("Should not exist in AWS", func() {
-
-		})
-	})
 })
 
 func checkBucketTransferAccel(cr *v1alpha1.Bucket) {
