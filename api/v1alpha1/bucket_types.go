@@ -40,6 +40,7 @@ type BucketSpec struct {
 	lists the set of canned ACLs and the associated predefined grants.
 	*/
 	// +kubebuilder:validation:Enum=private;public-read;public-read-write;aws-exec-read;authenticated-read;bucket-owner-read;bucket-owner-full-control;log-delivery-write
+	// +kubebuilder:default=private
 	CannedBucketAcl string `json:"cannedBucketAcl,omitempty"`
 	// +optional
 	Tags map[string]string `json:"tags,omitempty"`

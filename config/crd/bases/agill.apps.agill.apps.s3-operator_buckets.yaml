@@ -50,6 +50,7 @@ spec:
               bucketPolicy:
                 type: string
               cannedBucketAcl:
+                default: private
                 description: "* \tAmazon S3 supports a set of predefined grants, known as canned ACLs. \tEach canned ACL has a predefined set of grantees and permissions. \tThe following link ( https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#specifying-grantee ) \tlists the set of canned ACLs and the associated predefined grants."
                 enum:
                 - private

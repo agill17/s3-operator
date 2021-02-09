@@ -65,12 +65,8 @@ func (b *Bucket) PutTagsIn(tags *s3.Tagging) *s3.PutBucketTaggingInput {
 }
 
 func (b *Bucket) PutBucketCannedAclInput() *s3.PutBucketAclInput {
-	cannedAcl := b.Spec.CannedBucketAcl
-	if cannedAcl == "" {
-		cannedAcl = "private"
-	}
 	in := &s3.PutBucketAclInput{
-		ACL:    aws.String(cannedAcl),
+		ACL:    aws.String(b.Spec.CannedBucketAcl),
 		Bucket: aws.String(b.Spec.BucketName),
 	}
 	return in
