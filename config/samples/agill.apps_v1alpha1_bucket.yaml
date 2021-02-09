@@ -1,4 +1,4 @@
-apiVersion: agill.apps.agill.apps.s3-operator/v1alpha1
+apiVersion: agill.apps.s3-operator/v1alpha1
 kind: Bucket
 metadata:
   name: bucket-sample

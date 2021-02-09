@@ -44,8 +44,8 @@ const (
 	Finalizer = "agill.apps.s3-bucket"
 )
 
-// +kubebuilder:rbac:groups=agill.apps.agill.apps.s3-operator,resources=buckets,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=agill.apps.agill.apps.s3-operator,resources=buckets/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=agill.apps.s3-operator,resources=buckets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=agill.apps.s3-operator,resources=buckets/status,verbs=get;update;patch
 
 func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()

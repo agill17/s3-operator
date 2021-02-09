@@ -4,13 +4,13 @@ metadata:
   name: {{ include "s3-operator.fullname" . }}
 rules:
   - apiGroups:
-      - agill.apps.agill.apps.s3-operator
+      - agill.apps.s3-operator
     resources:
       - buckets
     verbs:
       - "*"
   - apiGroups:
-      - agill.apps.agill.apps.s3-operator
+      - agill.apps.s3-operator
     resources:
       - buckets/status
     verbs:

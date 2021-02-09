@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.0
   creationTimestamp: null
-  name: buckets.agill.apps.agill.apps.s3-operator
+  name: buckets.agill.apps.s3-operator
 spec:
-  group: agill.apps.agill.apps.s3-operator
+  group: agill.apps.s3-operator
   names:
     kind: Bucket
     listKind: BucketList

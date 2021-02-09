@@ -47,7 +47,7 @@ deploy: manifests
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-	rsync config/crd/bases/agill.apps.agill.apps.s3-operator_buckets.yaml s3-operator/crds
+	rsync config/crd/bases/agill.apps.s3-operator_buckets.yaml s3-operator/crds
 
 # Run go fmt against code
 fmt:
