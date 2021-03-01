@@ -1,4 +1,4 @@
-VERSION ?= 1.0.0
+VERSION ?= 2.0.0
 # Image URL to use all building/pushing image targets
 IMG ?= agill17/s3-operator:${VERSION}
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
@@ -19,7 +19,7 @@ test: generate fmt vet manifests
 	docker-compose -f localstack-docker-compose.yml up -d
 	sleep 30
 	## run controller tests
-	S3_ENDPOINT=http://localhost:4566 KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true go test -v ./controllers/... -coverprofile cover.out
+	MOCK_S3_ENDPOINT=http://localhost:4566 KUBEBUILDER_ATTACH_CONTROL_PLANE_OUTPUT=true go test -v ./controllers/... -coverprofile cover.out
 	## bring down s3 mock server
 	docker-compose -f localstack-docker-compose.yml down
 
@@ -47,8 +47,7 @@ deploy: manifests
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
-	rsync config/crd/bases/agill.apps.s3-operator_buckets.yaml s3-operator/crds
-
+	rsync config/crd/bases/* s3-operator/crds
 # Run go fmt against code
 fmt:
 	go fmt ./...
@@ -62,7 +61,7 @@ generate: controller-gen
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 # Build the docker image
-docker-build: test
+docker-build: generate fmt vet manifests
 	docker build . -t ${IMG}
 	yq w -i s3-operator/Chart.yaml appVersion ${VERSION}
 

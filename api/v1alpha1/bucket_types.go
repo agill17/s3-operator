@@ -22,7 +22,11 @@ import (
 
 // BucketSpec defines the desired state of Bucket
 type BucketSpec struct {
-	Region     string `json:"region,required"`
+	// Provider CR name which defines where and which credentials to use when reconciling a Bucket CR
+	ProviderRef string `json:"providerRef,required"`
+	// Geographical region to create and manage a bucket in.
+	Region string `json:"region,required"`
+	// The name of the bucket
 	BucketName string `json:"bucketName,required"`
 	// +optional
 	EnableVersioning bool `json:"enableVersioning,omitempty"`

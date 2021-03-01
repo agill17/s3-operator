@@ -46,6 +46,7 @@ spec:
             description: BucketSpec defines the desired state of Bucket
             properties:
               bucketName:
+                description: The name of the bucket
                 type: string
               bucketPolicy:
                 type: string
@@ -68,7 +69,11 @@ spec:
                 type: boolean
               enableVersioning:
                 type: boolean
+              providerRef:
+                description: Provider CR name which defines where and which credentials to use when reconciling a Bucket CR
+                type: string
               region:
+                description: Geographical region to create and manage a bucket in.
                 type: string
               tags:
                 additionalProperties:
@@ -76,6 +81,7 @@ spec:
                 type: object
             required:
             - bucketName
+            - providerRef
             - region
             type: object
           status:

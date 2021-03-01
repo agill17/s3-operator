@@ -8,3 +8,4 @@ spec:
   bucketName: valid-s3
   enableTransferAcceleration: true
   cannedBucketAcl: "authenticated-read"
+  providerRef: aws-provider-with-creds-from-vault

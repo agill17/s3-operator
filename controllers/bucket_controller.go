@@ -19,11 +19,14 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/agill17/s3-operator/controllers/factory"
+	"github.com/agill17/s3-operator/factory"
+	"github.com/agill17/s3-operator/vault"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -47,7 +50,7 @@ const (
 // +kubebuilder:rbac:groups=agill.apps.s3-operator,resources=buckets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=agill.apps.s3-operator,resources=buckets/status,verbs=get;update;patch
 
-func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	_ = r.Log.WithValues("bucket", req.NamespacedName)
 
@@ -62,13 +65,27 @@ func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
-	// add finalizer
-	if err := FinalizerOp(cr, r.Client, add, Finalizer); err != nil {
-		r.Log.Error(err, fmt.Sprintf("%s: Failed to add finalizer to CR", err))
+	providerCr := &agillappsv1alpha1.Provider{}
+	err = r.Client.Get(context.TODO(), types.NamespacedName{Name: cr.Spec.ProviderRef}, providerCr)
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	bucketInterface := factory.NewBucket(cr.Spec.Region)
+	// add finalizer
+	if err := FinalizerOp(cr, r.Client, add, Finalizer); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	bucketInterface, err := factory.NewBucketInterface(ctx,
+		string(providerCr.Spec.Type),
+		cr.Spec.Region, providerCr.Spec.Credentials)
+	if err != nil {
+		if _, ok := err.(vault.ErrRequeueNeeded); ok {
+			r.Log.Info(err.Error())
+			return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
+		}
+		return ctrl.Result{}, err
+	}
 
 	// Handle Delete
 	if cr.GetDeletionTimestamp() != nil {
@@ -84,12 +101,12 @@ func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, nil
 	}
 
+	// create if does not exist
 	bucketExists, errCheckingBucket := bucketInterface.BucketExists(cr.Spec.BucketName)
 	if errCheckingBucket != nil {
 		r.Log.Error(errCheckingBucket, fmt.Sprintf("%s: failed to check if bucket exists", errCheckingBucket))
 		return ctrl.Result{}, errCheckingBucket
 	}
-
 	if !bucketExists {
 		r.Log.Info(fmt.Sprintf("%v: creating bucket", namespacedName))
 		if errCreatingBucket := bucketInterface.CreateBucket(cr.CreateBucketIn()); errCreatingBucket != nil {
@@ -98,6 +115,7 @@ func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 	}
 
+	// ensure bucket properties are up-to-date with desired CR spec
 	if errApplyingBucketProperties := bucketInterface.ApplyBucketProperties(cr); errApplyingBucketProperties != nil {
 		r.Log.Error(errApplyingBucketProperties, fmt.Sprintf("Failed to apply bucket properties"))
 		return ctrl.Result{}, errApplyingBucketProperties
@@ -121,7 +139,7 @@ func (r *BucketReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&agillappsv1alpha1.Bucket{}).
 		WithEventFilter(predicate.Funcs{
 			UpdateFunc: func(e event.UpdateEvent) bool {
-				return e.MetaOld.GetGeneration() != e.MetaNew.GetGeneration()
+				return e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration()
 			},
 		}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).

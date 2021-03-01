@@ -1,0 +1,9 @@
+apiVersion: agill.apps.s3-operator/v1alpha1
+kind: Provider
+metadata:
+  name: aws-provider-with-creds-inline
+spec:
+  type: aws
+  credentials:
+    AWS_ACCESS_KEY_ID: dGVzdA==
+    AWS_SECRET_ACCESS_KEY: dGVzdA==

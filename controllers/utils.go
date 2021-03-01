@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	meta2 "k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -29,7 +28,7 @@ func SliceContainsString(slice []string, lookupString string) (bool, int) {
 	return false, -1
 }
 
-func FinalizerOp(obj runtime.Object, client client.Client, action FinalizerAction, finalizer string) error {
+func FinalizerOp(obj client.Object, client client.Client, action FinalizerAction, finalizer string) error {
 	meta, err := meta2.Accessor(obj)
 	if err != nil {
 		return err

@@ -1,0 +1,13 @@
+apiVersion: agill.apps.s3-operator/v1alpha1
+kind: Provider
+metadata:
+  name: aws-provider-with-creds-from-vault
+spec:
+  type: aws
+  credentials:
+    VAULT_ADDR: aHR0cDovL3ZhdWx0OjgyMDA=
+    VAULT_SKIP_VERIFY: dHJ1ZQ==
+    VAULT_K8S_AUTH_BACKEND_PATH: YXV0aC9raW5k
+    VAULT_K8S_AUTH_BACKEND_ROLE: dGVzdA==
+    AWS_ACCESS_KEY_ID: dmF1bHQ6c2VjcmV0L2RhdGEva2luZC9zMy1vcGVyYXRvciNBV1NfQUNDRVNTX0tFWV9JRA==
+    AWS_SECRET_ACCESS_KEY: dmF1bHQ6c2VjcmV0L2RhdGEva2luZC9zMy1vcGVyYXRvciNBV1NfU0VDUkVUX0FDQ0VTU19LRVk=

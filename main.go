@@ -39,8 +39,9 @@ var (
 )
 
 const (
-	EnvVarSyncPeriod  = "RESYNC_PERIOD"
-	DefaultSyncPeriod = 3
+	EnvVarSyncPeriod     = "RESYNC_PERIOD"
+	EnvVarWatchNamespace = "WATCH_NAMESPACE"
+	DefaultSyncPeriod    = 30
 )
 
 func init() {
@@ -62,7 +63,13 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseDevMode(false)))
 
 	syncPeriod := getSyncPeriod()
-
+	watchNamespace := func() string {
+		ns := ""
+		if val, ok := os.LookupEnv(EnvVarWatchNamespace); ok && val != "" {
+			ns = val
+		}
+		return ns
+	}
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
@@ -70,7 +77,7 @@ func main() {
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "8e3843f1.agill.apps.s3-operator",
 		SyncPeriod:         &syncPeriod,
-		Namespace:          "",
+		Namespace:          watchNamespace(),
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
