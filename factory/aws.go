@@ -17,6 +17,8 @@ import (
 	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
+	"sync"
+	"time"
 )
 
 const (
@@ -26,8 +28,11 @@ const (
 	VaultRegexp          = `^vault[a-zA-Z0-9\W].*#[a-zA-Z0-9\W].*$`
 )
 
+var awsClientCache sync.Map
+
 type awsClient struct {
 	s3Client s3iface.S3API
+	vClient  *vault.Client
 }
 
 func getCacheKeyName(pName, region string) string {
@@ -35,37 +40,53 @@ func getCacheKeyName(pName, region string) string {
 }
 
 //TODO: cache awsClient and delete from cache when "InvalidAccessKeyId" error is thrown.
-func NewS3(ctx context.Context, region string, pCreds map[string][]byte) (*awsClient, error) {
-	cfg := &aws.Config{
-		Region:                        aws.String(region),
-		CredentialsChainVerboseErrors: aws.Bool(true),
-		MaxRetries:                    aws.Int(math.MaxInt64),
+func NewS3(ctx context.Context, region string, pName string, pCreds map[string][]byte) (*awsClient, error) {
+	cacheKeyName := fmt.Sprintf("aws-%v-%v", pName, region)
+	cachedAwsClient, ok := awsClientCache.Load(cacheKeyName)
+	if !ok {
+		cfg := &aws.Config{
+			Region:                        aws.String(region),
+			CredentialsChainVerboseErrors: aws.Bool(true),
+			MaxRetries:                    aws.Int(math.MaxInt64),
+		}
+		if val, ok := os.LookupEnv(EnvVarMockS3Endpoint); ok {
+			cfg.Endpoint = aws.String(val)
+			cfg.DisableSSL = aws.Bool(true)
+			cfg.S3ForcePathStyle = aws.Bool(true)
+		}
+		sess := session.Must(session.NewSession())
+		client := &awsClient{}
+		awsCreds, vaultClient, err := getAwsCreds(pCreds)
+		if err != nil {
+			return nil, err
+		}
+		if awsCreds != nil {
+			cfg.Credentials = awsCreds
+		}
+		if vaultClient != nil {
+			client.vClient = vaultClient
+		}
+		client.s3Client = s3.New(sess, cfg)
+		awsClientCache.Store(cacheKeyName, client)
+		return client, nil
 	}
-	if val, ok := os.LookupEnv(EnvVarMockS3Endpoint); ok {
-		cfg.Endpoint = aws.String(val)
-		cfg.DisableSSL = aws.Bool(true)
-		cfg.S3ForcePathStyle = aws.Bool(true)
+
+	if time.Now().After(cachedAwsClient.(*awsClient).vClient.ExpectedLeaseToEndAt) {
+		awsClientCache.Delete(cacheKeyName)
+		return nil, vault.ErrRequeueNeeded{}
 	}
-	sess := session.Must(session.NewSession())
-	client := &awsClient{}
-	awsCreds, err := getAwsCreds(pCreds)
-	if err != nil {
-		return nil, err
-	}
-	if awsCreds != nil {
-		cfg.Credentials = awsCreds
-	}
-	client.s3Client = s3.New(sess, cfg)
-	return client, nil
+
+	return cachedAwsClient.(*awsClient), nil
+
 }
 
-func getAwsCreds(providerCredsMap map[string][]byte) (*credentials.Credentials, error) {
+func getAwsCreds(providerCredsMap map[string][]byte) (*credentials.Credentials, *vault.Client, error) {
 	providerAccessId, providerHasAccessID := providerCredsMap[AwsAccessKeyId]
 	providerSecretKey, providerHasSecret := providerCredsMap[AwsSecretAccessKey]
 
 	// if a provider does not have the keys we look for in spec.Credentials, let SDK figure out the credentials to use
 	if !providerHasAccessID || !providerHasSecret {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	// stringify
@@ -74,7 +95,7 @@ func getAwsCreds(providerCredsMap map[string][]byte) (*credentials.Credentials, 
 
 	vaultRegex, err := regexp.Compile(VaultRegexp)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// if they look like vault paths, try reading from vault
@@ -82,7 +103,7 @@ func getAwsCreds(providerCredsMap map[string][]byte) (*credentials.Credentials, 
 		vaultRegex.MatchString(strProviderSecretKey) {
 		vClient, err := vault.NewVaultClient(providerCredsMap)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		// sample vault path
@@ -99,17 +120,17 @@ func getAwsCreds(providerCredsMap map[string][]byte) (*credentials.Credentials, 
 
 		accessIDFromVault, err := vClient.ReadSecretPath(accessIDPathKeySplit[0], accessIDPathKeySplit[len(accessIDPathKeySplit)-1])
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		secretKeyFromVault, err := vClient.ReadSecretPath(secretKeyPathSplit[0], secretKeyPathSplit[len(secretKeyPathSplit)-1])
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return credentials.NewStaticCredentials(accessIDFromVault, secretKeyFromVault, ""), nil
+		return credentials.NewStaticCredentials(accessIDFromVault, secretKeyFromVault, ""), vClient, nil
 	}
 
 	// assuming creds are specified in provider.spec.Credentials and they are real aws creds and not vault paths
-	return credentials.NewStaticCredentials(string(providerAccessId), string(providerSecretKey), ""), nil
+	return credentials.NewStaticCredentials(string(providerAccessId), string(providerSecretKey), ""), nil, nil
 }
 
 func (a *awsClient) BucketExists(name string) (bool, error) {

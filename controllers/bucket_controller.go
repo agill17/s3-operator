@@ -77,7 +77,7 @@ func (r *BucketReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	}
 
 	bucketInterface, err := factory.NewBucketInterface(ctx,
-		string(providerCr.Spec.Type),
+		string(providerCr.Spec.Type), providerCr.GetName(),
 		cr.Spec.Region, providerCr.Spec.Credentials)
 	if err != nil {
 		if _, ok := err.(vault.ErrRequeueNeeded); ok {

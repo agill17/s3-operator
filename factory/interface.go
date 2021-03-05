@@ -18,11 +18,11 @@ type Bucket interface {
 }
 
 // TODO: extend to other providers
-func NewBucketInterface(ctx context.Context, providerType, region string, providerCreds map[string][]byte) (Bucket, error) {
+func NewBucketInterface(ctx context.Context, providerType, name, region string, providerCreds map[string][]byte) (Bucket, error) {
 
 	switch providerType {
 	case "aws":
-		return NewS3(ctx, region, providerCreds)
+		return NewS3(ctx, region, name, providerCreds)
 	}
 	return nil, nil
 }

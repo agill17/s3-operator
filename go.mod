@@ -1,10 +1,10 @@
 module github.com/agill17/s3-operator
 
-go 1.15
+go 1.16
 
 require (
 	github.com/aws/aws-sdk-go v1.37.1
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.1
 	github.com/evanphx/json-patch/v5 v5.1.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.3.0

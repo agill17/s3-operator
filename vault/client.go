@@ -6,8 +6,6 @@ import (
 	vaultApi "github.com/hashicorp/vault/api"
 	"os"
 	"strconv"
-	"strings"
-	"sync"
 	"time"
 )
 
@@ -17,20 +15,16 @@ const (
 	K8sAuthBackendRole = "VAULT_K8S_AUTH_BACKEND_ROLE"
 )
 
-var vaultClientCache sync.Map
-
 type vaultLogicalClientInterface interface {
 	ReadWithData(path string, data map[string][]string) (*vaultApi.Secret, error)
 }
 
-type vaultClient struct {
+type Client struct {
 	vaultClient          *vaultApi.Client
 	vaultLogicalClient   vaultLogicalClientInterface
-	createdLeaseAt       time.Time
-	leaseDuration        int
-	expectedLeaseToEndAt time.Time
-	// cache key name is set so when a re-auth is needed, some other func can delete the cached client from the cache
-	cacheKeyName string
+	CreatedLeaseAt       time.Time
+	LeaseDuration        int
+	ExpectedLeaseToEndAt time.Time
 }
 
 // returns a vaultClient -- assumes k8s auth backend for authN
@@ -41,53 +35,39 @@ type vaultClient struct {
 // 	VAULT_SKIP_VERIFY: <OPTIONAL> -- you may set this in provider-cr or can be specified as a global env var in operator pod
 // 	VAULT_K8S_AUTH_BACKEND_PATH: <REQUIRED> -- path + authBackend name of kubernetes. For ex: auth/kubernetes
 // 	VAULT_K8S_AUTH_BACKEND_ROLE: <REQUIRED> -- role to authenticate against that exists in that k8s auth backend
-func NewVaultClient(providerCreds map[string][]byte) (*vaultClient, error) {
+func NewVaultClient(providerCreds map[string][]byte) (*Client, error) {
 	authBackendPath, authBackendRole, err := getVaultK8sBackendInfoFromProvider(providerCreds)
 	if err != nil {
 		return nil, err
 	}
-	cacheKeyName := fmt.Sprintf("%s-%s", strings.ReplaceAll(authBackendPath, "/", "-"), authBackendRole)
-	cachedClient, found := vaultClientCache.Load(cacheKeyName)
-	if !found {
-		vClient, errCreatingClient := vaultApi.NewClient(getVaultCfg(providerCreds))
-		if errCreatingClient != nil {
-			return nil, errCreatingClient
-		}
-
-		saJwt, errGettingSaJwt := getSaJWT()
-		if errGettingSaJwt != nil {
-			return nil, errGettingSaJwt
-		}
-
-		vaultLoginData := map[string]interface{}{}
-		vaultLoginData["role"] = authBackendRole
-		vaultLoginData["jwt"] = saJwt
-		authBackendLoginPath := fmt.Sprintf("%s/login", authBackendPath)
-		loginSecret, errLogin := vClient.Logical().Write(authBackendLoginPath, vaultLoginData)
-		if errLogin != nil {
-			return nil, errLogin
-		}
-		vClient.SetToken(loginSecret.Auth.ClientToken)
-		created := time.Now()
-		c := &vaultClient{
-			vaultClient:          vClient,
-			vaultLogicalClient:   vClient.Logical(),
-			createdLeaseAt:       created,
-			leaseDuration:        loginSecret.Auth.LeaseDuration,
-			expectedLeaseToEndAt: created.Add(time.Second * time.Duration(loginSecret.Auth.LeaseDuration)),
-			cacheKeyName:         cacheKeyName,
-		}
-		vaultClientCache.Store(cacheKeyName, c)
-		return c, nil
+	vClient, errCreatingClient := vaultApi.NewClient(getVaultCfg(providerCreds))
+	if errCreatingClient != nil {
+		return nil, errCreatingClient
 	}
-	cachedVaultClient, _ := cachedClient.(*vaultClient)
 
-	// in case the lease is expired, delete that key from cache and force re-queue
-	if time.Now().After(cachedVaultClient.expectedLeaseToEndAt) {
-		vaultClientCache.Delete(cacheKeyName)
-		return nil, ErrRequeueNeeded{}
+	saJwt, errGettingSaJwt := getSaJWT()
+	if errGettingSaJwt != nil {
+		return nil, errGettingSaJwt
 	}
-	return cachedClient.(*vaultClient), nil
+
+	vaultLoginData := map[string]interface{}{}
+	vaultLoginData["role"] = authBackendRole
+	vaultLoginData["jwt"] = saJwt
+	authBackendLoginPath := fmt.Sprintf("%s/login", authBackendPath)
+	loginSecret, errLogin := vClient.Logical().Write(authBackendLoginPath, vaultLoginData)
+	if errLogin != nil {
+		return nil, errLogin
+	}
+	vClient.SetToken(loginSecret.Auth.ClientToken)
+	created := time.Now()
+	c := &Client{
+		vaultClient:          vClient,
+		vaultLogicalClient:   vClient.Logical(),
+		CreatedLeaseAt:       created,
+		LeaseDuration:        loginSecret.Auth.LeaseDuration,
+		ExpectedLeaseToEndAt: created.Add(time.Second * time.Duration(loginSecret.Auth.LeaseDuration)),
+	}
+	return c, nil
 }
 
 // getVaultCfg is a helper func that returns a vault config to setup a vault client
