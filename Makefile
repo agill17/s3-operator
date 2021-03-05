@@ -63,7 +63,7 @@ generate: controller-gen
 # Build the docker image
 docker-build: generate fmt vet manifests
 	docker build . -t ${IMG}
-	yq w -i s3-operator/Chart.yaml appVersion ${VERSION}
+	yq e '.appVersion = "${VERSION}"' -i s3-operator/Chart.yaml
 
 # Push the docker image
 docker-push:
@@ -78,7 +78,7 @@ ifeq (, $(shell which controller-gen))
 	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
 	cd $$CONTROLLER_GEN_TMP_DIR ;\
 	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.5 ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.0 ;\
 	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
 	}
 CONTROLLER_GEN=$(GOBIN)/controller-gen

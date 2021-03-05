@@ -19,13 +19,19 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: 'Provider is the Schema for the providercredentials API TODO: Provider can JUST become "Provider" and it can accept "providerType"(aws,gcp) and "credentials" in future.'
+        description: 'Provider is the Schema for the providercredentials API TODO:
+          Provider can JUST become "Provider" and it can accept "providerType"(aws,gcp)
+          and "credentials" in future.'
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -36,7 +42,25 @@ spec:
                 additionalProperties:
                   format: byte
                   type: string
-                description: "Credentials is a key(string) value(base64-encoded-string) pair for specifying provider specific credentials. We look for default key names per provider. For example in case of aws, we look for AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY The values can be: 1. base64 encoded actual credentials 2. base64 encoded vault paths that have credentials. \t- When using vault paths, the following keys are required in spec.credentials \t\t1. VAULT_K8S_AUTH_BACKEND_PATH - k8s auth backend path ( example: auth/kubernetes ) \t\t2. VAULT_K8S_AUTH_BACKEND_ROLE - k8s auth role name ( example: test ) \t- When using vault paths, the following keys are optional \t\t1. VAULT_ADDR \t\t2. VAULT_SKIP_VERIFY - skip tls verification \t- Examples: \t\t1. AWS provider credentials with vault paths as example: \t\t\tspec: \t\t\t\tcredentials: \t\t\t\t\tVAULT_ADDR: aHR0cDovL3ZhdWx0OjgyMDA= \t\t\t\t\tVAULT_SKIP_VERIFY: dHJ1ZQ== \t\t\t\t\tVAULT_K8S_AUTH_BACKEND_PATH: YXV0aC9raW5k \t\t\t\t\tVAULT_K8S_AUTH_BACKEND_ROLE: dGVzdA== \t\t\t\t\tAWS_ACCESS_KEY_ID: dmF1bHQ6c2VjcmV0L2RhdGEva2luZC9zMy1vcGVyYXRvciNBV1NfQUNDRVNTX0tFWV9JRA== \t\t\t\t\tAWS_SECRET_ACCESS_KEY: dmF1bHQ6c2VjcmV0L2RhdGEva2luZC9zMy1vcGVyYXRvciNBV1NfU0VDUkVUX0FDQ0VTU19LRVk= \t\t2. AWS provider credentials without vault: \t\t\tspec: \t\t\t\tcredentials: \t\t\t\t\tAWS_ACCESS_KEY_ID: QVdTX0FDQ0VTU19LRVlfSUQK \t\t\t\t\tAWS_SECRET_ACCESS_KEY: QVdTX1NFQ1JFVF9BQ0NFU1NfS0VZCg=="
+                description: "Credentials is a key(string) value(base64-encoded-string)
+                  pair for specifying provider specific credentials. We look for default
+                  key names per provider. For example in case of aws, we look for
+                  AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY The values can be: 1.
+                  base64 encoded actual credentials 2. base64 encoded vault paths
+                  that have credentials. \t- When using vault paths, the following
+                  keys are required in spec.credentials \t\t1. VAULT_K8S_AUTH_BACKEND_PATH
+                  - k8s auth backend path ( example: auth/kubernetes ) \t\t2. VAULT_K8S_AUTH_BACKEND_ROLE
+                  - k8s auth role name ( example: test ) \t- When using vault paths,
+                  the following keys are optional \t\t1. VAULT_ADDR \t\t2. VAULT_SKIP_VERIFY
+                  - skip tls verification \t- Examples: \t\t1. AWS provider credentials
+                  with vault paths as example: \t\t\tspec: \t\t\t\tcredentials: \t\t\t\t\tVAULT_ADDR:
+                  aHR0cDovL3ZhdWx0OjgyMDA= \t\t\t\t\tVAULT_SKIP_VERIFY: dHJ1ZQ== \t\t\t\t\tVAULT_K8S_AUTH_BACKEND_PATH:
+                  YXV0aC9raW5k \t\t\t\t\tVAULT_K8S_AUTH_BACKEND_ROLE: dGVzdA== \t\t\t\t\tAWS_ACCESS_KEY_ID:
+                  dmF1bHQ6c2VjcmV0L2RhdGEva2luZC9zMy1vcGVyYXRvciNBV1NfQUNDRVNTX0tFWV9JRA==
+                  \t\t\t\t\tAWS_SECRET_ACCESS_KEY: dmF1bHQ6c2VjcmV0L2RhdGEva2luZC9zMy1vcGVyYXRvciNBV1NfU0VDUkVUX0FDQ0VTU19LRVk=
+                  \t\t2. AWS provider credentials without vault: \t\t\tspec: \t\t\t\tcredentials:
+                  \t\t\t\t\tAWS_ACCESS_KEY_ID: QVdTX0FDQ0VTU19LRVlfSUQK \t\t\t\t\tAWS_SECRET_ACCESS_KEY:
+                  QVdTX1NFQ1JFVF9BQ0NFU1NfS0VZCg=="
                 type: object
               type:
                 description: aws, gcp(not-yet-supported), azure(not-yet-supported)

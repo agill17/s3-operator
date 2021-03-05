@@ -32,13 +32,18 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Bucket is the Schema for the buckets API Bucket is the Schema for the buckets API
+        description: Bucket is the Schema for the buckets API Bucket is the Schema
+          for the buckets API
         properties:
           apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
           kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
             type: object
@@ -52,7 +57,10 @@ spec:
                 type: string
               cannedBucketAcl:
                 default: private
-                description: "* \tAmazon S3 supports a set of predefined grants, known as canned ACLs. \tEach canned ACL has a predefined set of grantees and permissions. \tThe following link ( https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#specifying-grantee ) \tlists the set of canned ACLs and the associated predefined grants."
+                description: "* \tAmazon S3 supports a set of predefined grants, known
+                  as canned ACLs. \tEach canned ACL has a predefined set of grantees
+                  and permissions. \tThe following link ( https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#specifying-grantee
+                  ) \tlists the set of canned ACLs and the associated predefined grants."
                 enum:
                 - private
                 - public-read
@@ -70,7 +78,8 @@ spec:
               enableVersioning:
                 type: boolean
               providerRef:
-                description: Provider CR name which defines where and which credentials to use when reconciling a Bucket CR
+                description: Provider CR name which defines where and which credentials
+                  to use when reconciling a Bucket CR
                 type: string
               region:
                 description: Geographical region to create and manage a bucket in.

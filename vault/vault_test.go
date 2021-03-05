@@ -9,7 +9,7 @@ import (
 
 type mockedVaultLogicalClient struct {
 	ReadSecretWithDataResp *vaultApi.Secret
-	ReadSecretWithDataErr error
+	ReadSecretWithDataErr  error
 }
 
 func (m mockedVaultLogicalClient) ReadWithData(path string, data map[string][]string) (*vaultApi.Secret, error) {
@@ -36,16 +36,16 @@ func TestClient_ReadSecretPath(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name : "successful read - should return value and no error",
-			want: "testValue",
+			name:    "successful read - should return value and no error",
+			want:    "testValue",
 			wantErr: false,
 			args: args{
 				path: "kv/data/foo/service",
 				key:  "testKey",
 			},
 			fields: fields{
-				vaultClient:          nil,
-				vaultLogicalClient:   &mockedVaultLogicalClient{
+				vaultClient: nil,
+				vaultLogicalClient: &mockedVaultLogicalClient{
 					ReadSecretWithDataResp: &vaultApi.Secret{
 						Data: map[string]interface{}{
 							"data": map[string]interface{}{
@@ -53,41 +53,41 @@ func TestClient_ReadSecretPath(t *testing.T) {
 							},
 						},
 					},
-					ReadSecretWithDataErr:  nil,
+					ReadSecretWithDataErr: nil,
 				},
 			},
 		},
 		{
-			name : "key not found - should return empty string and an error",
-			want: "",
+			name:    "key not found - should return empty string and an error",
+			want:    "",
 			wantErr: true,
 			args: args{
 				path: "kv/data/foo/service",
 				key:  "ThisKeyDoesNotExist",
 			},
 			fields: fields{
-				vaultClient:          nil,
-				vaultLogicalClient:   &mockedVaultLogicalClient{
+				vaultClient: nil,
+				vaultLogicalClient: &mockedVaultLogicalClient{
 					ReadSecretWithDataResp: &vaultApi.Secret{
 						Data: map[string]interface{}{
 							"data": map[string]interface{}{},
 						},
 					},
-					ReadSecretWithDataErr:  nil,
+					ReadSecretWithDataErr: nil,
 				},
 			},
 		},
 		{
-			name : "Vault went belly up and started crying",
-			want: "",
+			name:    "Vault went belly up and started crying",
+			want:    "",
 			wantErr: true,
 			args: args{
 				path: "kv/data/foo/service",
 				key:  "testKey",
 			},
 			fields: fields{
-				vaultClient:          nil,
-				vaultLogicalClient:   &mockedVaultLogicalClient{
+				vaultClient: nil,
+				vaultLogicalClient: &mockedVaultLogicalClient{
 					ReadSecretWithDataResp: nil,
 					ReadSecretWithDataErr:  errors.New("ErrVaultWentBellyUp"),
 				},
