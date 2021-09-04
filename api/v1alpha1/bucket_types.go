@@ -17,12 +17,26 @@ limitations under the License.
 package v1alpha1
 
 import (
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type CloudProvider string
+const (
+	Aws CloudProvider = "aws"
+	Gcp CloudProvider = "gcp"
+)
+
+type Provider struct {
+	Name CloudProvider `json:"name,required"`
+	Region string `json:"region,required"`
+	// +optional
+	SecretRef *v1.SecretReference `json:"secretRef,omitempty"`
+}
+
 // BucketSpec defines the desired state of Bucket
 type BucketSpec struct {
-	Region     string `json:"region,required"`
+	Provider Provider `json:"provider,required"`
 	BucketName string `json:"bucketName,required"`
 	// +optional
 	EnableVersioning bool `json:"enableVersioning,omitempty"`

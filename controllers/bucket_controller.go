@@ -19,7 +19,8 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"github.com/agill17/s3-operator/controllers/factory"
+	"github.com/agill17/s3-operator/internal"
+	"github.com/agill17/s3-operator/internal/factory"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -47,7 +48,7 @@ const (
 // +kubebuilder:rbac:groups=agill.apps.s3-operator,resources=buckets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=agill.apps.s3-operator,resources=buckets/status,verbs=get;update;patch
 
-func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *BucketReconciler) Reconcile(ctx context.Context,req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	_ = r.Log.WithValues("bucket", req.NamespacedName)
 
@@ -61,30 +62,32 @@ func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		r.Log.Error(err, fmt.Sprintf("%s: Failed to get bucket CR", namespacedName))
 		return ctrl.Result{}, err
 	}
-
 	// add finalizer
-	if err := FinalizerOp(cr, r.Client, add, Finalizer); err != nil {
+	if err := internal.FinalizerOp(cr, r.Client, internal.Add, Finalizer); err != nil {
 		r.Log.Error(err, fmt.Sprintf("%s: Failed to add finalizer to CR", err))
 		return ctrl.Result{}, err
 	}
 
-	bucketInterface := factory.NewBucket(cr.Spec.Region)
-
+	bInterface, err := factory.NewBucket(r.Client, &cr.Spec.Provider)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	
 	// Handle Delete
 	if cr.GetDeletionTimestamp() != nil {
 		r.Log.Info(fmt.Sprintf("%v: deleting bucket", namespacedName))
-		if errDeleting := bucketInterface.DeleteBucket(cr.DeleteBucketIn()); errDeleting != nil {
+		if errDeleting := bInterface.DeleteBucket(cr); errDeleting != nil {
 			r.Log.Error(errDeleting, fmt.Sprintf("%s: Failed to delete bucket", errDeleting))
 			return ctrl.Result{}, errDeleting
 		}
 
-		if errRemovingFinalizer := FinalizerOp(cr, r.Client, remove, Finalizer); errRemovingFinalizer != nil {
+		if errRemovingFinalizer := internal.FinalizerOp(cr, r.Client, internal.Remove, Finalizer); errRemovingFinalizer != nil {
 			r.Log.Error(errRemovingFinalizer, fmt.Sprintf("%s: Failed to remove finalizer", errRemovingFinalizer))
 		}
 		return ctrl.Result{}, nil
 	}
 
-	bucketExists, errCheckingBucket := bucketInterface.BucketExists(cr.Spec.BucketName)
+	bucketExists, errCheckingBucket := bInterface.BucketExists(cr)
 	if errCheckingBucket != nil {
 		r.Log.Error(errCheckingBucket, fmt.Sprintf("%s: failed to check if bucket exists", errCheckingBucket))
 		return ctrl.Result{}, errCheckingBucket
@@ -92,13 +95,14 @@ func (r *BucketReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	if !bucketExists {
 		r.Log.Info(fmt.Sprintf("%v: creating bucket", namespacedName))
-		if errCreatingBucket := bucketInterface.CreateBucket(cr.CreateBucketIn()); errCreatingBucket != nil {
+		if errCreatingBucket := bInterface.CreateBucket(cr); errCreatingBucket != nil {
 			r.Log.Error(errCreatingBucket, fmt.Sprintf("%s: Failed to create s3 bucket", errCreatingBucket))
 			return ctrl.Result{}, errCreatingBucket
 		}
 	}
 
-	if errApplyingBucketProperties := bucketInterface.ApplyBucketProperties(cr); errApplyingBucketProperties != nil {
+	errApplyingBucketProperties := bInterface.ApplyBucketProperties(cr)
+	if errApplyingBucketProperties != nil {
 		r.Log.Error(errApplyingBucketProperties, fmt.Sprintf("Failed to apply bucket properties"))
 		return ctrl.Result{}, errApplyingBucketProperties
 	}
@@ -121,7 +125,7 @@ func (r *BucketReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&agillappsv1alpha1.Bucket{}).
 		WithEventFilter(predicate.Funcs{
 			UpdateFunc: func(e event.UpdateEvent) bool {
-				return e.MetaOld.GetGeneration() != e.MetaNew.GetGeneration()
+				return e.ObjectNew.GetGeneration() != e.ObjectOld.GetGeneration()
 			},
 		}).
 		WithOptions(controller.Options{MaxConcurrentReconciles: 10}).

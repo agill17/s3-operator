@@ -5,25 +5,25 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func (b *Bucket) CreateBucketIn() *s3.CreateBucketInput {
+func (b *Bucket) AWSCreateBucketIn() *s3.CreateBucketInput {
 	in := &s3.CreateBucketInput{
 		Bucket:                     aws.String(b.Spec.BucketName),
 		ObjectLockEnabledForBucket: aws.Bool(b.Spec.EnableObjectLock),
 	}
-	if b.Spec.Region != "us-east-1" {
-		in.CreateBucketConfiguration = &s3.CreateBucketConfiguration{LocationConstraint: aws.String(b.Spec.Region)}
+	if b.Spec.Provider.Region != "us-east-1" {
+		in.CreateBucketConfiguration = &s3.CreateBucketConfiguration{LocationConstraint: aws.String(b.Spec.Provider.Region)}
 	}
 
 	return in
 }
 
-func (b *Bucket) DeleteBucketIn() *s3.DeleteBucketInput {
+func (b *Bucket) AWSDeleteBucketIn() *s3.DeleteBucketInput {
 	return &s3.DeleteBucketInput{
 		Bucket: aws.String(b.Spec.BucketName),
 	}
 }
 
-func (b *Bucket) PutBucketVersioningIn() *s3.PutBucketVersioningInput {
+func (b *Bucket) AWSPutBucketVersioningIn() *s3.PutBucketVersioningInput {
 	var status = s3.BucketVersioningStatusSuspended
 	if b.Spec.EnableVersioning {
 		status = s3.BucketVersioningStatusEnabled
@@ -36,7 +36,7 @@ func (b *Bucket) PutBucketVersioningIn() *s3.PutBucketVersioningInput {
 	}
 }
 
-func (b *Bucket) BucketAccelerationConfigIn() *s3.PutBucketAccelerateConfigurationInput {
+func (b *Bucket) AWSBucketAccelerationConfigIn() *s3.PutBucketAccelerateConfigurationInput {
 	var status = s3.BucketAccelerateStatusSuspended
 	if b.Spec.EnableTransferAcceleration {
 		status = s3.BucketAccelerateStatusEnabled
@@ -48,7 +48,7 @@ func (b *Bucket) BucketAccelerationConfigIn() *s3.PutBucketAccelerateConfigurati
 	return in
 }
 
-func (b *Bucket) BucketPolicyInput() *s3.PutBucketPolicyInput {
+func (b *Bucket) AWSBucketPolicyInput() *s3.PutBucketPolicyInput {
 	in := &s3.PutBucketPolicyInput{
 		Bucket: aws.String(b.Spec.BucketName),
 		Policy: aws.String(b.Spec.BucketPolicy),
@@ -56,7 +56,7 @@ func (b *Bucket) BucketPolicyInput() *s3.PutBucketPolicyInput {
 	return in
 }
 
-func (b *Bucket) PutTagsIn(tags *s3.Tagging) *s3.PutBucketTaggingInput {
+func (b *Bucket) AWSPutTagsIn(tags *s3.Tagging) *s3.PutBucketTaggingInput {
 
 	return &s3.PutBucketTaggingInput{
 		Bucket:  aws.String(b.Spec.BucketName),
@@ -64,7 +64,7 @@ func (b *Bucket) PutTagsIn(tags *s3.Tagging) *s3.PutBucketTaggingInput {
 	}
 }
 
-func (b *Bucket) PutBucketCannedAclInput() *s3.PutBucketAclInput {
+func (b *Bucket) AWSPutBucketCannedAclInput() *s3.PutBucketAclInput {
 	in := &s3.PutBucketAclInput{
 		ACL:    aws.String(b.Spec.CannedBucketAcl),
 		Bucket: aws.String(b.Spec.BucketName),

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/agill17/s3-operator/api/v1alpha1"
-	"github.com/agill17/s3-operator/controllers/factory"
 	test_data "github.com/agill17/s3-operator/controllers/test-data"
+	aws2 "github.com/agill17/s3-operator/internal/factory/aws"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -194,7 +194,9 @@ var _ = Describe("Negative tests", func() {
 					Name:      "missing-bucketName",
 				},
 				Spec: v1alpha1.BucketSpec{
-					Region: "us-east-1",
+					Provider: v1alpha1.Provider{
+						Region: "us-east-1",
+					},
 				},
 			},
 		}
@@ -248,6 +250,6 @@ func checkTags(cr *v1alpha1.Bucket) {
 	}
 
 	expectedMap := cr.Spec.Tags
-	actualMap := factory.TSetToMap(out.TagSet)
+	actualMap := aws2.TagListToTagMap(out.TagSet)
 	Expect(expectedMap).To(BeEquivalentTo(actualMap))
 }

@@ -1,17 +1,16 @@
-package controllers
+package internal
 
 import (
 	"context"
 	meta2 "k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type FinalizerAction string
 
 const (
-	add    FinalizerAction = "add"
-	remove FinalizerAction = "remove"
+	Add    FinalizerAction = "add"
+	Remove FinalizerAction = "remove"
 )
 
 func SliceContainsString(slice []string, lookupString string) (bool, int) {
@@ -29,7 +28,7 @@ func SliceContainsString(slice []string, lookupString string) (bool, int) {
 	return false, -1
 }
 
-func FinalizerOp(obj runtime.Object, client client.Client, action FinalizerAction, finalizer string) error {
+func FinalizerOp(obj client.Object, client client.Client, action FinalizerAction, finalizer string) error {
 	meta, err := meta2.Accessor(obj)
 	if err != nil {
 		return err
@@ -37,14 +36,14 @@ func FinalizerOp(obj runtime.Object, client client.Client, action FinalizerActio
 	currentFinalizers := meta.GetFinalizers()
 	exists, idx := SliceContainsString(currentFinalizers, finalizer)
 	switch action {
-	case add:
+	case Add:
 		if !exists {
 			currentFinalizers = append(currentFinalizers, finalizer)
 			meta.SetFinalizers(currentFinalizers)
 			return client.Update(context.TODO(), obj)
 		}
 		break
-	case remove:
+	case Remove:
 		if exists {
 			currentFinalizers = append(currentFinalizers[:idx], currentFinalizers[idx+1:]...)
 			meta.SetFinalizers(currentFinalizers)

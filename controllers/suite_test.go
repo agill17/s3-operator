@@ -17,7 +17,7 @@ limitations under the License.
 package controllers
 
 import (
-	"github.com/agill17/s3-operator/controllers/factory"
+	aws2 "github.com/agill17/s3-operator/internal/factory/aws"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -61,7 +61,7 @@ func TestAPIs(t *testing.T) {
 }
 
 var _ = BeforeSuite(func(done Done) {
-	logf.SetLogger(zap.LoggerTo(GinkgoWriter, true))
+	logf.SetLogger(zap.New())
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
@@ -97,7 +97,7 @@ var _ = BeforeSuite(func(done Done) {
 	Expect(k8sClient).ToNot(BeNil())
 
 	// ensure env var for mock s3 server is set
-	Expect(os.Getenv(factory.EnvVarS3Endpoint)).ToNot(BeEmpty())
+	Expect(os.Getenv(aws2.EnvVarS3Endpoint)).ToNot(BeEmpty())
 
 	go func() {
 		err = testMgr.Start(controllerruntime.SetupSignalHandler())
@@ -108,7 +108,7 @@ var _ = BeforeSuite(func(done Done) {
 		CredentialsChainVerboseErrors: aws.Bool(true),
 		MaxRetries:                    aws.Int(math.MaxInt64),
 		Region:                        aws.String("us-east-1"),
-		Endpoint:                      aws.String(os.Getenv(factory.EnvVarS3Endpoint)),
+		Endpoint:                      aws.String(os.Getenv(aws2.EnvVarS3Endpoint)),
 		DisableSSL:                    aws.Bool(true),
 		S3ForcePathStyle:              aws.Bool(true),
 	}
