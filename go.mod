@@ -3,7 +3,7 @@ module github.com/agill17/s3-operator
 go 1.13
 
 require (
-	github.com/aws/aws-sdk-go v1.29.3
+	github.com/aws/aws-sdk-go v1.34.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/operator-framework/operator-sdk v0.15.2
 	github.com/spf13/pflag v1.0.5
